@@ -1,4 +1,4 @@
-# [VIP] Tag
+# [VIP] Test
 My Discord server - https://discord.com/invite/g798xERK5Y
 
 Allows regular players to take on VIP status
