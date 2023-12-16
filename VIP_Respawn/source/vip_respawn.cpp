@@ -10,6 +10,7 @@ CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
+void (*UTIL_RespawnPlayer2)(CBasePlayerController* pPlayer, CEntityInstance* pPawn, bool a3, bool a4) = nullptr;
 void (*UTIL_RespawnPlayer)(CBasePlayerPawn* pPlayer) = nullptr;
 
 int g_iRespawns[63];
@@ -46,6 +47,19 @@ void OnRespawnCommand(const char* szContent, int iSlot)
 					return;
 				}
 				g_iRespawns[iSlot]++;
+				
+				const auto currentPawn = pPlayerController->m_hPawn().Get();
+				const auto playerPawn  = pPlayerController->m_hPlayerPawn().Get();
+				if (currentPawn != playerPawn)
+				{
+					META_CONPRINTF("НЕ СОВПАДАЕТ!\n");
+					const auto pawn = UTIL_FindEntityByEHandle(playerPawn);
+					if (pawn)
+					{
+						META_CONPRINTF("НАШЁЛ КОГО-ТО!\n");
+						UTIL_RespawnPlayer2(pPlayerController, pawn, true, false);
+					}
+				}
 				pPlayerController->ForceRespawn();
 				UTIL_RespawnPlayer(pPlayerController->m_hPlayerPawn().Get());
 			}
@@ -63,7 +77,14 @@ bool vip_respawn::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, b
 	g_SMAPI->AddListener( this, this );
 
 	CModule libserver(g_pSource2Server);
-	UTIL_RespawnPlayer = libserver.FindPatternSIMD("8B 8F 40 0E 00 00 83 F9 FF 0F 84 D9 01").RCast< decltype(UTIL_RespawnPlayer) >();
+	UTIL_RespawnPlayer2 = libserver.FindPatternSIMD(WIN_LINUX("44 88 4C 24 20 55 57", "55 48 89 E5 41 57 41 56 41 55 41 54 49 89 FC 53 48 89 F3 48 81 EC C8 00 00 00")).RCast< decltype(UTIL_RespawnPlayer2) >();
+	if (!UTIL_RespawnPlayer2)
+	{
+		V_strncpy(error, "Failed to find function to get UTIL_RespawnPlayer2", maxlen);
+		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
+		return false;
+	}
+	UTIL_RespawnPlayer = libserver.FindPatternSIMD(WIN_LINUX("40 53 48 83 EC 20 8B 91 38 0B 00 00 48 8B D9", "8B 8F 40 0E 00 00 83 F9 FF 0F 84 D9 01")).RCast< decltype(UTIL_RespawnPlayer) >();
 	if (!UTIL_RespawnPlayer)
 	{
 		V_strncpy(error, "Failed to find function to get UTIL_RespawnPlayer", maxlen);

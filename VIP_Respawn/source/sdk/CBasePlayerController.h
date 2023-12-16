@@ -7,4 +7,5 @@
 class CBasePlayerController : public SC_CBaseEntity
 {
 public:
+    SCHEMA_FIELD(CHandle<CBasePlayerPawn>, CBasePlayerController, m_hPawn);
 };
