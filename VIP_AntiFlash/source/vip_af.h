@@ -14,8 +14,10 @@
 #include "sdk/CBasePlayerPawn.h"
 #include "sdk/CCSPlayerController.h"
 #include "sdk/CCSPlayer_ItemServices.h"
+#include "sdk/CGameRules.h"
 #include "iserver.h"
 #include "include/vip.h"
+#include "include/menus.h"
 #include <string>
 #include <ctime>
 

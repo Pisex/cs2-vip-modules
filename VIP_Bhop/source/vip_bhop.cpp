@@ -72,6 +72,7 @@ void vip_bhop::AllPluginsLoaded()
 		return;
 	}
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pVIPCore->VIP_RegisterFeature("bhop", VIP_BOOL, TOGGLABLE);
 }
 
 const char *vip_bhop::GetLicense()

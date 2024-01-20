@@ -4,6 +4,7 @@
 vip_vips g_vip_vips;
 
 IVIPApi* g_pVIPCore;
+IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
 CSchemaSystem* g_pCSchemaSystem = nullptr;
@@ -44,7 +45,7 @@ bool vip_vips::Unload(char *error, size_t maxlen)
 	return true;
 }
 
-void OnVipsCommand(const char* szContent, int iSlot)
+bool OnVipsCommand(int iSlot, const char* szContent)
 {
 	bool bFound = false;
 	for (int i = 0; i < 64; i++)
@@ -54,31 +55,32 @@ void OnVipsCommand(const char* szContent, int iSlot)
 			CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(i + 1));
 			if(!pPlayerController) continue;
 			CCSPlayerPawn* pPlayerPawn = pPlayerController->m_hPlayerPawn();
-			if(!pPlayerPawn)  continue;
+			if(!pPlayerPawn) continue;
 			if(!bFound)
 			{
-				g_pVIPCore->VIP_PrintToChat(iSlot, 3, g_pVIPCore->VIP_GetTranslate("VIPS_Title"));
+				g_pUtils->PrintToChat(iSlot, g_pVIPCore->VIP_GetTranslate("VIPS_Title"));
 				bFound = true;
 			}
 			switch (iType)
 			{
 			case 0:
-				g_pVIPCore->VIP_PrintToChat(iSlot, 3, g_pVIPCore->VIP_GetTranslate("VIPS_Player"), pPlayerController->m_iszPlayerName(), g_pVIPCore->VIP_GetClientVIPGroup(i));
+				g_pUtils->PrintToChat(iSlot, g_pVIPCore->VIP_GetTranslate("VIPS_Player"), pPlayerController->m_iszPlayerName(), g_pVIPCore->VIP_GetClientVIPGroup(i));
 				break;
 			case 1:
-				g_pVIPCore->VIP_PrintToChat(iSlot, 3, g_pVIPCore->VIP_GetTranslate("VIPS_Player2"), pPlayerController->m_iszPlayerName());
+				g_pUtils->PrintToChat(iSlot, g_pVIPCore->VIP_GetTranslate("VIPS_Player2"), pPlayerController->m_iszPlayerName());
 				break;
 			}
 		}
 	}
-	if(!bFound) g_pVIPCore->VIP_PrintToChat(iSlot, 3, g_pVIPCore->VIP_GetTranslate("VIPS_NoPlayers"));
+	if(!bFound) g_pUtils->PrintToChat(iSlot, g_pVIPCore->VIP_GetTranslate("VIPS_NoPlayers"));
+	return false;
 }
 
 void VIP_OnVIPLoaded()
 {
 	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
-	g_pVIPCore->VIP_RegCommand("vips", OnVipsCommand);
+	g_pUtils->RegCommand(g_PLID, {"sm_vips", "mm_vips", "vips"}, {"!vips", "vips"}, OnVipsCommand);
 }
 
 void vip_vips::AllPluginsLoaded()
@@ -90,6 +92,17 @@ void vip_vips::AllPluginsLoaded()
 	{
 		char error[64];
 		V_strncpy(error, "Failed to lookup vip core. Aborting", 64);
+		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
+	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
+
+	if (ret == META_IFACE_FAILED)
+	{
+		char error[64];
+		V_strncpy(error, "Failed to lookup utils api. Aborting", 64);
 		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
 		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
 		engine->ServerCommand(sBuffer.c_str());

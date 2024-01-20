@@ -99,6 +99,7 @@ void vip_smoke::AllPluginsLoaded()
 		return;
 	}
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pVIPCore->VIP_RegisterFeature("smoke_color", VIP_BOOL, TOGGLABLE);
 }
 
 const char *vip_smoke::GetLicense()

@@ -1,7 +1,7 @@
 # [VIP] Respawn
 My Discord server - https://discord.com/invite/g798xERK5Y
 
-Adds the ability for a VIP player to revive(works unstable)
+Adds the ability for a VIP player to revive
 
 In **groups.ini** add:
 ```

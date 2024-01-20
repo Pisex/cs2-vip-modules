@@ -4,6 +4,7 @@
 vip_af g_vip_af;
 
 IVIPApi* g_pVIPCore;
+IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
 CSchemaSystem* g_pCSchemaSystem = nullptr;
@@ -23,13 +24,15 @@ bool vip_af::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool l
 bool vip_af::Unload(char *error, size_t maxlen)
 {
 	delete g_pVIPCore;
+	g_pUtils->ClearAllHooks(g_PLID);
+	delete g_pUtils;
 	return true;
 }
 
-void VIP_OnFireEvent(const char* szName, IGameEvent* event, bool bDontBroadcast)
+void OnPlayerBlind(const char* szName, IGameEvent* event, bool bDontBroadcast)
 {
 	CPlayerSlot pPlayerSlot = event->GetPlayerSlot("userid");
-	if(!strcmp(szName, "player_blind") && g_pVIPCore->VIP_IsClientVIP(pPlayerSlot.Get()))
+	if(g_pVIPCore->VIP_IsClientVIP(pPlayerSlot.Get()))
 	{
 		CCSPlayerController* pPlayerController = static_cast<CCSPlayerController*>(event->GetPlayerController("userid"));
 		if (!pPlayerController)
@@ -76,19 +79,16 @@ void VIP_OnFireEvent(const char* szName, IGameEvent* event, bool bDontBroadcast)
 	}
 }
 
-
 void VIP_OnVIPLoaded()
 {
 	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
-	g_pVIPCore->VIP_OnFireEvent(VIP_OnFireEvent);
 }
 
 void vip_af::AllPluginsLoaded()
 {
 	int ret;
 	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
-
 	if (ret == META_IFACE_FAILED)
 	{
 		char error[64];
@@ -98,7 +98,19 @@ void vip_af::AllPluginsLoaded()
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
+	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
+	if (ret == META_IFACE_FAILED)
+	{
+		char error[64];
+		V_strncpy(error, "Failed to lookup utils api. Aborting", 64);
+		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
+	g_pUtils->HookEvent(g_PLID, "player_blind", OnPlayerBlind);
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pVIPCore->VIP_RegisterFeature("antiflash", VIP_BOOL, TOGGLABLE);
 }
 
 const char *vip_af::GetLicense()

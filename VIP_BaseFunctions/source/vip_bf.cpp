@@ -139,6 +139,11 @@ void vip_bf::AllPluginsLoaded()
 		return;
 	}
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pVIPCore->VIP_RegisterFeature("health", 	STRING, TOGGLABLE);
+	g_pVIPCore->VIP_RegisterFeature("armor", 	STRING, TOGGLABLE);
+	g_pVIPCore->VIP_RegisterFeature("money", 	STRING, TOGGLABLE);
+	g_pVIPCore->VIP_RegisterFeature("helmet", 	VIP_BOOL, TOGGLABLE);
+	g_pVIPCore->VIP_RegisterFeature("defuser", 	VIP_BOOL, TOGGLABLE);
 }
 
 const char *vip_bf::GetLicense()

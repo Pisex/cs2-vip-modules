@@ -122,6 +122,7 @@ void vip_items::AllPluginsLoaded()
 		return;
 	}
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pVIPCore->VIP_RegisterFeature("items", STRING, TOGGLABLE);
 }
 
 const char *vip_items::GetLicense()

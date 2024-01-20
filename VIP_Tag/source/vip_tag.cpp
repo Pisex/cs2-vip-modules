@@ -40,11 +40,19 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 	}
 }
 
+void VIP_OnVIPClientRemoved(int iSlot, int iReason)
+{
+	CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iSlot + 1));
+	if(!pPlayerController) return;
+	pPlayerController->m_szClan() = CUtlSymbolLarge("\0");
+}
+
 void VIP_OnVIPLoaded()
 {
 	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
 	g_pVIPCore->VIP_OnPlayerSpawn(VIP_OnPlayerSpawn);
+	g_pVIPCore->VIP_OnVIPClientRemoved(VIP_OnVIPClientRemoved);
 }
 
 void VIPTag::AllPluginsLoaded()
@@ -62,6 +70,7 @@ void VIPTag::AllPluginsLoaded()
 		return;
 	}
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pVIPCore->VIP_RegisterFeature("clantag", STRING, TOGGLABLE);
 }
 
 const char *VIPTag::GetLicense()

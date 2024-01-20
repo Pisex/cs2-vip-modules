@@ -15,8 +15,10 @@
 #include "sdk/CCSPlayerController.h"
 #include "sdk/CPlantedC4.h"
 #include "sdk/CCSPlayer_ItemServices.h"
+#include "sdk/CGameRules.h"
 #include "iserver.h"
 #include "include/vip.h"
+#include "include/menus.h"
 #include <ctime>
 #include <deque>
 #include <functional>
@@ -28,7 +30,6 @@ public:
 	bool Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late);
 	bool Unload(char *error, size_t maxlen);
 	void AllPluginsLoaded();
-	void NextFrame(std::function<void()> fn);
 public:
 	const char *GetAuthor();
 	const char *GetName();
@@ -38,9 +39,6 @@ public:
 	const char *GetVersion();
 	const char *GetDate();
 	const char *GetLogTag();
-private:
-	void GameFrame(bool simulating, bool bFirstTick, bool bLastTick);
-	std::deque<std::function<void()>> m_nextFrame;
 };
 
 extern vip_fd g_vip_fd;

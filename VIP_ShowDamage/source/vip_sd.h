@@ -13,8 +13,10 @@
 #include "sdk/CBaseEntity.h"
 #include "sdk/CBasePlayerPawn.h"
 #include "sdk/CCSPlayerController.h"
+#include "sdk/CGameRules.h"
 #include "iserver.h"
 #include "include/vip.h"
+#include "include/menus.h"
 #include <ctime>
 
 class vip_sd : public ISmmPlugin, public IMetamodListener

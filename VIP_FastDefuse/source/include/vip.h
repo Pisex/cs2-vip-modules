@@ -7,13 +7,44 @@
 
 #define VIP_INTERFACE "IVIPApi"
 
+enum VIP_ValueType
+{
+	VIP_NULL	= 0,	// Нет данных
+	INT,				// Целочисленный тип
+	FLOAT,				// Числа с плавающей точкой (Дробные)
+	VIP_BOOL,			// Логический тип (1/0)
+	STRING				// Строчный тип
+};
+
+enum VIP_ToggleState
+{
+	DISABLED = 0,		// Выключено
+	ENABLED,			// Включено
+	NO_ACCESS			// Нет доступа
+};
+
+enum VIP_FeatureType
+{
+	TOGGLABLE = 0,		// Вкл/Выкл в меню
+	SELECTABLE,			// Только нажатие
+	HIDE				// Скрытый
+};
+
+
+// (для типа TOGGLABLE)
+typedef std::function<bool(int iSlot, const char* szFeature, VIP_ToggleState eOldStatus, VIP_ToggleState& eNewStatus)> ItemTogglableCallback;
+// (для типа SELECTABLE)
+typedef std::function<bool(int iSlot, const char* szFeature)> ItemSelectableCallback;
+
+// Визуал
+typedef std::function<std::string(int iSlot, const char* szFeature)> ItemDisplayCallback;
+
+
 typedef std::function<void()> ReadyCallbackFunc;
 typedef std::function<void(int iSlot, int iTeam, bool bIsVIP)> SpawnCallbackFunc;
 typedef std::function<void(int iSlot, bool bIsVIP)> ClientLoadedOrDisconnectCallbackFunc;
-typedef std::function<void(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)> EventCallbackFunc;
 typedef std::function<void(int iSlot)> VIPAddCallbackFunc;
 typedef std::function<void(int iSlot, int iReason)> VIPRemoveCallbackFunc;
-typedef std::function<void(const char* szContent, int iSlot)> VIPCommandCallbackFunc;
 
 class IVIPApi
 {
@@ -33,11 +64,6 @@ public:
 	virtual float VIP_GetClientFeatureFloat(int iSlot, const char* szFeature) = 0;
 	virtual const char *VIP_GetClientFeatureString(int iSlot, const char* szFeature) = 0;
 
-	virtual void VIP_RegCommand(const char* szCommand, VIPCommandCallbackFunc callback) = 0;
-
-    virtual void VIP_PrintToChat(int Slot, int hud_dest, const char *msg, ...) = 0;
-    virtual void VIP_PrintToChatAll(int hud_dest, const char *msg, ...) = 0;
-
 	virtual CGameEntitySystem* VIP_GetEntitySystem() = 0;
     virtual int VIP_GetTotalRounds() = 0;
 
@@ -50,12 +76,21 @@ public:
 	virtual const char *VIP_GetTranslate(const char* phrase) = 0;
 	virtual const char *VIP_GetClientCookie(int iSlot, const char* sCookieName) = 0;
 
+	virtual void VIP_PrintToCenter(int iSlot, const char* msg, ...) = 0;
+
 	//Forwards
     virtual void VIP_OnVIPLoaded(ReadyCallbackFunc callback) = 0;
 	virtual void VIP_OnClientLoaded(ClientLoadedOrDisconnectCallbackFunc callback) = 0;
 	virtual void VIP_OnClientDisconnect(ClientLoadedOrDisconnectCallbackFunc callback) = 0;
 	virtual void VIP_OnPlayerSpawn(SpawnCallbackFunc callback) = 0;
-	virtual void VIP_OnFireEvent(EventCallbackFunc callback) = 0;
 	virtual void VIP_OnVIPClientRemoved(VIPRemoveCallbackFunc callback) = 0;
 	virtual void VIP_OnVIPClientAdded(VIPAddCallbackFunc callback) = 0;
+
+	
+    virtual void VIP_RegisterFeature(const char*			    szFeature,
+								VIP_ValueType			eValType				= VIP_NULL,
+								VIP_FeatureType			eType					= TOGGLABLE,
+								ItemSelectableCallback	Item_select_callback	= nullptr,
+								ItemTogglableCallback	Item_togglable_callback	= nullptr,
+								ItemDisplayCallback		Item_display_callback	= nullptr) = 0;
 };

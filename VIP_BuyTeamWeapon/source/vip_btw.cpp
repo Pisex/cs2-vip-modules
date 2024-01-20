@@ -4,6 +4,7 @@
 vip_btw g_vip_btw;
 
 IVIPApi* g_pVIPCore;
+IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
 CSchemaSystem* g_pCSchemaSystem = nullptr;
@@ -23,106 +24,111 @@ bool vip_btw::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool 
 bool vip_btw::Unload(char *error, size_t maxlen)
 {
 	delete g_pVIPCore;
+	g_pUtils->ClearAllHooks(g_PLID);
+	delete g_pUtils;
 	return true;
 }
 
-void VIP_OnFireEvent(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
+void OnRoundStart(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 {
-	if(!strcmp(szName, "round_start"))
+	for (int i = 0; i < 64; i++)
 	{
-		for (int i = 0; i < 64; i++)
+		if(g_pVIPCore->VIP_IsClientVIP(i) && g_pVIPCore->VIP_GetClientFeatureBool(i, "btw"))
 		{
-			if(g_pVIPCore->VIP_IsClientVIP(i) && g_pVIPCore->VIP_GetClientFeatureBool(i, "btw"))
+			CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(i + 1));
+			if(!pPlayerController) return;
+			CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
+			if (pPlayerPawn && pPlayerPawn->m_lifeState() == LIFE_ALIVE)
 			{
-				CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(i + 1));
-				if(!pPlayerController) return;
-				CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
-				if (pPlayerPawn && pPlayerPawn->m_lifeState() == LIFE_ALIVE)
-				{
-					if(pPlayerPawn->m_iTeamNum() == 3)
-						g_pVIPCore->VIP_PrintToChat(i, 3, "%s", g_pVIPCore->VIP_GetTranslate("btw_round_start1"));
-					else if(pPlayerPawn->m_iTeamNum() == 2)
-						g_pVIPCore->VIP_PrintToChat(i, 3, "%s", g_pVIPCore->VIP_GetTranslate("btw_round_start2"));
-				}
+				if(pPlayerPawn->m_iTeamNum() == 3)
+					g_pUtils->PrintToChat(i, "%s", g_pVIPCore->VIP_GetTranslate("btw_round_start1"));
+				else if(pPlayerPawn->m_iTeamNum() == 2)
+					g_pUtils->PrintToChat(i, "%s", g_pVIPCore->VIP_GetTranslate("btw_round_start2"));
 			}
 		}
 	}
 }
 
-void VIP_AK47Command(const char* szContent, int iSlot)
+bool VIP_AK47Command(int iSlot, const char* szContent)
 {
 	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "btw"))
 	{
 		CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iSlot + 1));
-		if(!pPlayerController) return;
+		if(!pPlayerController) return false;
 		CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
 		if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE)
-			return;
+			return false;
 		CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
-		if(!pMoneyServices) return;
+		if(!pMoneyServices) return false;
 		if(pMoneyServices->m_iAccount() >= 2700)
 		{
 			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
 			pMoneyServices->m_iAccount() -=2700; 
 			pItemServices->GiveNamedItem("weapon_ak47");
+			g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
 		}
-		else g_pVIPCore->VIP_PrintToChat(iSlot, 3, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
+		else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
 	}
-	else g_pVIPCore->VIP_PrintToChat(iSlot, 3, "%s", g_pVIPCore->VIP_GetTranslate("NotAccess"));
+	else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("NotAccess"));
+	return false;
 }
 
-void VIP_M4A1Command(const char* szContent, int iSlot)
+bool VIP_M4A1Command(int iSlot, const char* szContent)
 {
 	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "btw"))
 	{
 		CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iSlot + 1));
-		if(!pPlayerController) return;
+		if(!pPlayerController) return false;
 		CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
 		if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE)
-			return;
+			return false;
 		CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
-		if(!pMoneyServices) return;
+		if(!pMoneyServices) return false;
 		if(pMoneyServices->m_iAccount() >= 2900)
 		{
 			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
 			pMoneyServices->m_iAccount() -=2900; 
 			pItemServices->GiveNamedItem("weapon_m4a1_silencer");
+			g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
 		}
-		else g_pVIPCore->VIP_PrintToChat(iSlot, 3, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
+		else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
 	}
-	else g_pVIPCore->VIP_PrintToChat(iSlot, 3, "%s", g_pVIPCore->VIP_GetTranslate("NotAccess"));
+	else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("NotAccess"));
+	return false;
 }
 
-void VIP_M4A4Command(const char* szContent, int iSlot)
+bool VIP_M4A4Command(int iSlot, const char* szContent)
 {
 	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "btw"))
 	{
 		CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iSlot + 1));
-		if(!pPlayerController) return;
+		if(!pPlayerController) return false;
 		CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
 		if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE)
-			return;
+			return false;
 		CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
-		if(!pMoneyServices) return;
+		if(!pMoneyServices) return false;
 		if(pMoneyServices->m_iAccount() >= 3100)
 		{
 			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
 			pMoneyServices->m_iAccount() -=3100; 
 			pItemServices->GiveNamedItem("weapon_m4a1");
+			g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
 		}
-		else g_pVIPCore->VIP_PrintToChat(iSlot, 3, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
+		else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
 	}
-	else g_pVIPCore->VIP_PrintToChat(iSlot, 3, "%s", g_pVIPCore->VIP_GetTranslate("NotAccess"));
+	else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("NotAccess"));
+	return false;
 }
 
 void VIP_OnVIPLoaded()
 {
 	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
-	g_pVIPCore->VIP_OnFireEvent(VIP_OnFireEvent);
-	g_pVIPCore->VIP_RegCommand("ak47", VIP_AK47Command);
-	g_pVIPCore->VIP_RegCommand("m4a1", VIP_M4A1Command);
-	g_pVIPCore->VIP_RegCommand("m4a4", VIP_M4A4Command);
+	g_pUtils->HookEvent(g_PLID, "round_start", OnRoundStart);
+	g_pUtils->RegCommand(g_PLID, {"sm_ak47", "mm_ak47"}, {"!ak47", "ak47"}, VIP_AK47Command);
+	g_pUtils->RegCommand(g_PLID, {"sm_m4a1", "mm_m4a1"}, {"!m4a1", "m4a1"}, VIP_M4A1Command);
+	g_pUtils->RegCommand(g_PLID, {"sm_m4a4", "mm_m4a4"}, {"!m4a4", "m4a4"}, VIP_M4A4Command);
 }
 
 void vip_btw::AllPluginsLoaded()
@@ -139,7 +145,19 @@ void vip_btw::AllPluginsLoaded()
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
+	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
+
+	if (ret == META_IFACE_FAILED)
+	{
+		char error[64];
+		V_strncpy(error, "Failed to lookup utils api. Aborting", 64);
+		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pVIPCore->VIP_RegisterFeature("btw", VIP_BOOL, HIDE);
 }
 
 const char *vip_btw::GetLicense()

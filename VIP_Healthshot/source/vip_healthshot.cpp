@@ -88,6 +88,7 @@ void vip_healthshot::AllPluginsLoaded()
 		return;
 	}
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pVIPCore->VIP_RegisterFeature("healthshot", INT, TOGGLABLE);
 }
 
 const char *vip_healthshot::GetLicense()

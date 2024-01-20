@@ -4,6 +4,7 @@
 vip_test g_vip_test;
 
 IVIPApi* g_pVIPCore;
+IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
 CSchemaSystem* g_pCSchemaSystem = nullptr;
@@ -15,7 +16,7 @@ int iTimeout;
 
 PLUGIN_EXPOSE(vip_test, g_vip_test);
 
-void OnVIPTestCommand(const char* szContent, int iSlot)
+bool OnVIPTestCommand(int iSlot, const char* szContent)
 {
 	if(!g_pVIPCore->VIP_IsClientVIP(iSlot))
 	{
@@ -30,10 +31,11 @@ void OnVIPTestCommand(const char* szContent, int iSlot)
 			time_t currentTime_t = (time_t)std::stoi(szValue);
 			char buffer[80];
 			std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime_t));
-			g_pVIPCore->VIP_PrintToChat(iSlot, 3, g_pVIPCore->VIP_GetTranslate(iTimeout == 0?"ReceivedDisabled":"AlreadyReceived"), buffer);
+			g_pUtils->PrintToChat(iSlot, g_pVIPCore->VIP_GetTranslate(iTimeout == 0?"ReceivedDisabled":"AlreadyReceived"), buffer);
 		}
 	}
-	else g_pVIPCore->VIP_PrintToChat(iSlot, 3, g_pVIPCore->VIP_GetTranslate("AlreadyVIP"));
+	else g_pUtils->PrintToChat(iSlot, g_pVIPCore->VIP_GetTranslate("AlreadyVIP"));
+	return false;
 }
 
 bool vip_test::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
@@ -70,8 +72,8 @@ bool vip_test::Unload(char *error, size_t maxlen)
 
 void VIP_OnVIPLoaded()
 {
-	g_pVIPCore->VIP_RegCommand("viptest", OnVIPTestCommand);
-	g_pVIPCore->VIP_RegCommand("testvip", OnVIPTestCommand);
+	g_pUtils->RegCommand(g_PLID, {"mm_viptest", "sm_viptest"}, {"!viptest", "viptest"}, OnVIPTestCommand);
+	g_pUtils->RegCommand(g_PLID, {"mm_testvip", "sm_testvip"}, {"!testvip", "testvip"}, OnVIPTestCommand);
 }
 
 void vip_test::AllPluginsLoaded()
@@ -83,6 +85,17 @@ void vip_test::AllPluginsLoaded()
 	{
 		char error[64];
 		V_strncpy(error, "Failed to lookup vip core. Aborting", 64);
+		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
+	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
+
+	if (ret == META_IFACE_FAILED)
+	{
+		char error[64];
+		V_strncpy(error, "Failed to lookup utils api. Aborting", 64);
 		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
 		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
 		engine->ServerCommand(sBuffer.c_str());

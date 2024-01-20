@@ -16,7 +16,7 @@ for sdk_name in MMSPlugin.sdks:
     binary = MMSPlugin.HL2Library(builder, cxx, MMSPlugin.plugin_name, sdk)
 
     binary.sources += [
-      'vip_tag.cpp',
+      'vip_vips.cpp',
       os.path.join('sdk', 'schemasystem.cpp')
     ]
 

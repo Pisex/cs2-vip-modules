@@ -4,6 +4,7 @@
 vip_sd g_vip_sd;
 
 IVIPApi* g_pVIPCore;
+IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
 CSchemaSystem* g_pCSchemaSystem = nullptr;
@@ -23,18 +24,17 @@ bool vip_sd::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool l
 bool vip_sd::Unload(char *error, size_t maxlen)
 {
 	delete g_pVIPCore;
+	g_pUtils->ClearAllHooks(g_PLID);
+	delete g_pUtils;
 	return true;
 }
 
-void VIP_OnFireEvent(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
+void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 {
-	if(!strcmp(szName, "player_hurt"))
+	int iSlot = pEvent->GetPlayerSlot("attacker").Get();
+	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "show_damage"))
 	{
-		int iSlot = pEvent->GetPlayerSlot("attacker").Get();
-		if(g_pVIPCore->VIP_IsClientVIP(iSlot) && g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "show_damage"))
-		{
-			g_pVIPCore->VIP_PrintToChat(pEvent->GetPlayerSlot("attacker").Get(), 4, "-%i", pEvent->GetInt("dmg_health"));
-		}
+		g_pVIPCore->VIP_PrintToCenter(pEvent->GetPlayerSlot("attacker").Get(), "-%i", pEvent->GetInt("dmg_health"));
 	}
 }
 
@@ -43,7 +43,7 @@ void VIP_OnVIPLoaded()
 {
 	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
-	g_pVIPCore->VIP_OnFireEvent(VIP_OnFireEvent);
+	g_pUtils->HookEvent(g_PLID, "player_hurt", OnPlayerHurt);
 }
 
 void vip_sd::AllPluginsLoaded()
@@ -60,7 +60,19 @@ void vip_sd::AllPluginsLoaded()
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
+	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
+
+	if (ret == META_IFACE_FAILED)
+	{
+		char error[64];
+		V_strncpy(error, "Failed to lookup utils api. Aborting", 64);
+		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pVIPCore->VIP_RegisterFeature("show_damage", VIP_BOOL, TOGGLABLE);
 }
 
 const char *vip_sd::GetLicense()
