@@ -203,7 +203,7 @@ const char *vip_rm::GetDate()
 
 const char *vip_rm::GetLogTag()
 {
-	return "[VIP-TAG]";
+	return "[VIP-RM]";
 }
 
 const char *vip_rm::GetAuthor()
@@ -213,12 +213,12 @@ const char *vip_rm::GetAuthor()
 
 const char *vip_rm::GetDescription()
 {
-	return "Puts a vip tag on the player";
+	return "";
 }
 
 const char *vip_rm::GetName()
 {
-	return "[VIP] Tag";
+	return "[VIP] Raibow Model";
 }
 
 const char *vip_rm::GetURL()
