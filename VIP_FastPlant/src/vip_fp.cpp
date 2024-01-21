@@ -54,12 +54,11 @@ void OnBeginPlant(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 	}
 }
 
-void VIP_OnVIPLoaded()
+void OnStartupServer()
 {
 	gpGlobals = g_pUtils->GetCGlobalVars();
-	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
-	g_pEntitySystem = g_pGameEntitySystem;
-	g_pUtils->HookEvent(g_PLID, "bomb_beginplant",OnBeginPlant);
+	g_pGameEntitySystem = g_pUtils->GetCGameEntitySystem();
+	g_pEntitySystem = g_pUtils->GetCEntitySystem();
 }
 
 void vip_fp::AllPluginsLoaded()
@@ -87,8 +86,9 @@ void vip_fp::AllPluginsLoaded()
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
-	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
 	g_pVIPCore->VIP_RegisterFeature("fp", VIP_BOOL, TOGGLABLE);
+	g_pUtils->StartupServer(g_PLID, OnStartupServer);
+	g_pUtils->HookEvent(g_PLID, "bomb_beginplant",OnBeginPlant);
 }
 
 const char *vip_fp::GetLicense()

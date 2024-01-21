@@ -47,11 +47,11 @@ bool VIP_KS::Unload(char *error, size_t maxlen)
 	return true;
 }
 
-void VIP_OnVIPLoaded()
+void OnStartupServer()
 {
 	gpGlobals = g_pUtils->GetCGlobalVars();
-	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
-	g_pEntitySystem = g_pGameEntitySystem;
+	g_pGameEntitySystem = g_pUtils->GetCGameEntitySystem();
+	g_pEntitySystem = g_pUtils->GetCEntitySystem();
 }
 
 void OnPlayerDeath(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
@@ -62,6 +62,7 @@ void OnPlayerDeath(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 		CCSPlayerPawn* pPlayer = pPlayerController->m_hPlayerPawn().Get();
 		if(pPlayer)
 		{
+			Msg("DEBUG: %f | %f\n", gpGlobals->curtime, fTime);	
 			pPlayer->m_flHealthShotBoostExpirationTime().m_Value = gpGlobals->curtime + fTime;
 			g_pUtils->SetStateChanged(pPlayer, "CCSPlayerPawn", "m_flHealthShotBoostExpirationTime");
 		}
@@ -91,9 +92,9 @@ void VIP_KS::AllPluginsLoaded()
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
-	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
 	g_pVIPCore->VIP_RegisterFeature("killscreen", VIP_BOOL, TOGGLABLE);
 	g_pUtils->HookEvent(g_PLID, "player_death", OnPlayerDeath);
+	g_pUtils->StartupServer(g_PLID, OnStartupServer);
 }
 
 const char *VIP_KS::GetLicense()
