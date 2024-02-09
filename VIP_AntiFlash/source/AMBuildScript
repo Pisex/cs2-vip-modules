@@ -59,12 +59,12 @@ class MMSPluginConfig(object):
     if builder.options.plugin_name is not None:
       self.plugin_name = builder.options.plugin_name
     else:
-      self.plugin_name = 'vip'
+      self.plugin_name = 'vip_af'
 
     if builder.options.plugin_alias is not None:
       self.plugin_alias = builder.options.plugin_alias
     else:
-      self.plugin_alias = 'vip'
+      self.plugin_alias = 'vip_af'
 
     if builder.options.targets:
       target_archs = builder.options.targets.split(',')
