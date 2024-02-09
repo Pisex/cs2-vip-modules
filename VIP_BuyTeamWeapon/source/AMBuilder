@@ -23,6 +23,7 @@ for sdk_target in MMSPlugin.sdk_targets:
     binary.sources += [
       'vip_btw.cpp',
       os.path.join('sdk', 'schemasystem.cpp')
+    ]
 
     if sdk_target in ['dota', 'cs2']:
       binary.sources += [
