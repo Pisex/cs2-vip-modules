@@ -78,7 +78,7 @@ bool OnVipsCommand(int iSlot, const char* szContent)
 
 CGameEntitySystem* GameEntitySystem()
 {
-    return g_pVIPCore->GetCGameEntitySystem();
+    return g_pVIPCore->VIP_GetEntitySystem();
 };
 
 void VIP_OnVIPLoaded()
