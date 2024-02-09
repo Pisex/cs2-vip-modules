@@ -51,9 +51,14 @@ bool vip_bhop::Unload(char *error, size_t maxlen)
 	return true;
 }
 
+CGameEntitySystem* GameEntitySystem()
+{
+    return g_pVIPCore->VIP_GetEntitySystem();
+};
+
 void VIP_OnVIPLoaded()
 {
-	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
+	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
 }
 
