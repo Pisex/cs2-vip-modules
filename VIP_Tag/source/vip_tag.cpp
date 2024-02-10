@@ -47,9 +47,14 @@ void VIP_OnVIPClientRemoved(int iSlot, int iReason)
 	pPlayerController->m_szClan() = CUtlSymbolLarge("\0");
 }
 
+CGameEntitySystem* GameEntitySystem()
+{
+    return g_pVIPCore->VIP_GetEntitySystem();
+};
+
 void VIP_OnVIPLoaded()
 {
-	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
+	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
 	g_pVIPCore->VIP_OnPlayerSpawn(VIP_OnPlayerSpawn);
 	g_pVIPCore->VIP_OnVIPClientRemoved(VIP_OnVIPClientRemoved);
@@ -70,7 +75,7 @@ void VIPTag::AllPluginsLoaded()
 		return;
 	}
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
-	g_pVIPCore->VIP_RegisterFeature("clantag", STRING, TOGGLABLE);
+	g_pVIPCore->VIP_RegisterFeature("clantag", VIP_STRING, TOGGLABLE);
 }
 
 const char *VIPTag::GetLicense()

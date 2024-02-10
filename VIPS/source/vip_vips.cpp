@@ -76,9 +76,14 @@ bool OnVipsCommand(int iSlot, const char* szContent)
 	return false;
 }
 
+CGameEntitySystem* GameEntitySystem()
+{
+    return g_pVIPCore->VIP_GetEntitySystem();
+};
+
 void VIP_OnVIPLoaded()
 {
-	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
+	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
 	g_pUtils->RegCommand(g_PLID, {"sm_vips", "mm_vips", "vips"}, {"!vips", "vips"}, OnVipsCommand);
 }

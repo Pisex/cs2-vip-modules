@@ -10,10 +10,10 @@
 enum VIP_ValueType
 {
 	VIP_NULL	= 0,	// Нет данных
-	INT,				// Целочисленный тип
-	FLOAT,				// Числа с плавающей точкой (Дробные)
+	VIP_INT,				// Целочисленный тип
+	VIP_FLOAT,				// Числа с плавающей точкой (Дробные)
 	VIP_BOOL,			// Логический тип (1/0)
-	STRING				// Строчный тип
+	VIP_STRING				// Строчный тип
 };
 
 enum VIP_ToggleState

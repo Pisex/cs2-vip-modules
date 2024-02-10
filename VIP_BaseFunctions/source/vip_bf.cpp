@@ -117,9 +117,14 @@ bool vip_bf::Unload(char *error, size_t maxlen)
 	return true;
 }
 
+CGameEntitySystem* GameEntitySystem()
+{
+    return g_pVIPCore->VIP_GetEntitySystem();
+};
+
 void VIP_OnVIPLoaded()
 {
-	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
+	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
 	g_pVIPCore->VIP_OnPlayerSpawn(VIP_OnPlayerSpawn);
 }
@@ -139,9 +144,9 @@ void vip_bf::AllPluginsLoaded()
 		return;
 	}
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
-	g_pVIPCore->VIP_RegisterFeature("health", 	STRING, TOGGLABLE);
-	g_pVIPCore->VIP_RegisterFeature("armor", 	STRING, TOGGLABLE);
-	g_pVIPCore->VIP_RegisterFeature("money", 	STRING, TOGGLABLE);
+	g_pVIPCore->VIP_RegisterFeature("health", 	VIP_STRING, TOGGLABLE);
+	g_pVIPCore->VIP_RegisterFeature("armor", 	VIP_STRING, TOGGLABLE);
+	g_pVIPCore->VIP_RegisterFeature("money", 	VIP_STRING, TOGGLABLE);
 	g_pVIPCore->VIP_RegisterFeature("helmet", 	VIP_BOOL, TOGGLABLE);
 	g_pVIPCore->VIP_RegisterFeature("defuser", 	VIP_BOOL, TOGGLABLE);
 }

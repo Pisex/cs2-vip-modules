@@ -118,9 +118,14 @@ void OnRoundEnd(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 	g_isActive = false;
 }
 
+CGameEntitySystem* GameEntitySystem()
+{
+    return g_pVIPCore->VIP_GetEntitySystem();
+};
+
 void VIP_OnVIPLoaded()
 {
-	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
+	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
 	g_pUtils->HookEvent(g_PLID, "round_start", OnRoundStart);
 	g_pUtils->HookEvent(g_PLID, "round_end", OnRoundEnd);
@@ -161,7 +166,7 @@ void vip_respawn::AllPluginsLoaded()
 		return;
 	}
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
-	g_pVIPCore->VIP_RegisterFeature("respawn", INT, SELECTABLE, OnSelect, nullptr, OnDisplay);
+	g_pVIPCore->VIP_RegisterFeature("respawn", VIP_INT, SELECTABLE, OnSelect, nullptr, OnDisplay);
 }
 
 const char *vip_respawn::GetLicense()

@@ -66,9 +66,14 @@ bool vip_healthshot::Unload(char *error, size_t maxlen)
 	return true;
 }
 
+CGameEntitySystem* GameEntitySystem()
+{
+    return g_pVIPCore->VIP_GetEntitySystem();
+};
+
 void VIP_OnVIPLoaded()
 {
-	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
+	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
 	g_pVIPCore->VIP_OnPlayerSpawn(VIP_OnPlayerSpawn);
 }
@@ -88,7 +93,7 @@ void vip_healthshot::AllPluginsLoaded()
 		return;
 	}
 	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
-	g_pVIPCore->VIP_RegisterFeature("healthshot", INT, TOGGLABLE);
+	g_pVIPCore->VIP_RegisterFeature("healthshot", VIP_INT, TOGGLABLE);
 }
 
 const char *vip_healthshot::GetLicense()
