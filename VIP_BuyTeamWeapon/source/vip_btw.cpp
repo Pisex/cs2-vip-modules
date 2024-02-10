@@ -121,9 +121,14 @@ bool VIP_M4A4Command(int iSlot, const char* szContent)
 	return false;
 }
 
+CGameEntitySystem* GameEntitySystem()
+{
+    return g_pVIPCore->VIP_GetEntitySystem();
+};
+
 void VIP_OnVIPLoaded()
 {
-	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
+	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
 	g_pUtils->HookEvent(g_PLID, "round_start", OnRoundStart);
 	g_pUtils->RegCommand(g_PLID, {"sm_ak47", "mm_ak47"}, {"!ak47", "ak47"}, VIP_AK47Command);

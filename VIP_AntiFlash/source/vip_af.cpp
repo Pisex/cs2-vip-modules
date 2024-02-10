@@ -79,9 +79,14 @@ void OnPlayerBlind(const char* szName, IGameEvent* event, bool bDontBroadcast)
 	}
 }
 
+CGameEntitySystem* GameEntitySystem()
+{
+    return g_pVIPCore->VIP_GetEntitySystem();
+};
+
 void VIP_OnVIPLoaded()
 {
-	g_pGameEntitySystem = g_pVIPCore->VIP_GetEntitySystem();
+	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
 }
 

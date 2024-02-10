@@ -54,10 +54,16 @@ void OnBeginPlant(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 	}
 }
 
+CGameEntitySystem* GameEntitySystem()
+{
+    return g_pUtils->GetCGameEntitySystem();
+};
+
+
 void OnStartupServer()
 {
 	gpGlobals = g_pUtils->GetCGlobalVars();
-	g_pGameEntitySystem = g_pUtils->GetCGameEntitySystem();
+	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pUtils->GetCEntitySystem();
 }
 
