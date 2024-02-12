@@ -14,6 +14,6 @@ public:
 	SCHEMA_FIELD(CCSPlayerController_InGameMoneyServices*, CCSPlayerController, m_pInGameMoneyServices);
 
     auto ForceRespawn() {
-		return CALL_VIRTUAL(void, WIN_LINUX(242, 244), this);
+		return CALL_VIRTUAL(void, WIN_LINUX(245, 247), this);
 	}
 };

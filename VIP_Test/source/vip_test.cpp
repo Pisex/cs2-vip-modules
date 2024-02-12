@@ -8,7 +8,6 @@ IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
 CSchemaSystem* g_pCSchemaSystem = nullptr;
-CGameEntitySystem* g_pGameEntitySystem = nullptr;
 
 char szGroup[128];
 int iTime;
