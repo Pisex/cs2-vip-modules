@@ -89,7 +89,7 @@ bool vip_respawn::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, b
 		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
 		return false;
 	}
-	UTIL_RespawnPlayer = libserver.FindPatternSIMD(WIN_LINUX("40 53 48 83 EC 20 8B 91 38 0B 00 00 48 8B D9", "8B 8F 80 0E 00 00 83 F9 FF 0F 84 ? ? ? ? 48 8B 35 1A")).RCast< decltype(UTIL_RespawnPlayer) >();
+	UTIL_RespawnPlayer = libserver.FindPatternSIMD(WIN_LINUX("40 53 48 83 EC 20 8B 91 38 0B 00 00 48 8B D9", "8B 8F 80 0E 00 00 83 F9 FF 0F 84 ? ? ? ? 48 8B 35 EA")).RCast< decltype(UTIL_RespawnPlayer) >();
 	if (!UTIL_RespawnPlayer)
 	{
 		V_strncpy(error, "Failed to find function to get UTIL_RespawnPlayer", maxlen);
