@@ -11,8 +11,7 @@ CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
-void (*UTIL_RespawnPlayer2)(CBasePlayerController* pPlayer, CEntityInstance* pPawn, bool a3, bool a4) = nullptr;
-void (*UTIL_RespawnPlayer)(CBasePlayerPawn* pPlayer) = nullptr;
+void (*UTIL_RespawnPlayer)(CBasePlayerController* pPlayer, CEntityInstance* pPawn, bool a3, bool a4) = nullptr;
 
 int g_iRespawns[63];
 bool g_isActive;
@@ -56,10 +55,9 @@ bool OnRespawnCommand(int iSlot, const char* szContent)
 				{
 					const auto pawn = UTIL_FindEntityByEHandle(playerPawn);
 					if (pawn)
-						UTIL_RespawnPlayer2(pPlayerController, pawn, true, false);
+						UTIL_RespawnPlayer(pPlayerController, pawn, true, false);
 				}
 				pPlayerController->ForceRespawn();
-				UTIL_RespawnPlayer(pPlayerController->m_hPlayerPawn().Get());
 			}
 			else g_pUtils->PrintToChat(iSlot, g_pVIPCore->VIP_GetTranslate("LimitRespawn"));
 		}
@@ -82,14 +80,7 @@ bool vip_respawn::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, b
 	g_SMAPI->AddListener( this, this );
 
 	CModule libserver(g_pSource2Server);
-	UTIL_RespawnPlayer2 = libserver.FindPatternSIMD(WIN_LINUX("44 88 4C 24 20 55 57", "55 48 89 E5 41 57 41 56 41 55 41 54 49 89 FC 53 48 89 F3 48 81 EC C8 00 00 00")).RCast< decltype(UTIL_RespawnPlayer2) >();
-	if (!UTIL_RespawnPlayer2)
-	{
-		V_strncpy(error, "Failed to find function to get UTIL_RespawnPlayer2", maxlen);
-		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
-		return false;
-	}
-	UTIL_RespawnPlayer = libserver.FindPatternSIMD(WIN_LINUX("40 53 48 83 EC 20 8B 91 38 0B 00 00 48 8B D9", "8B 8F 80 0E 00 00 83 F9 FF 0F 84 ? ? ? ? 48 8B 35 EA")).RCast< decltype(UTIL_RespawnPlayer) >();
+	UTIL_RespawnPlayer = libserver.FindPatternSIMD(WIN_LINUX("44 88 4C 24 20 55 57", "55 48 89 E5 41 57 41 56 41 55 41 54 49 89 FC 53 48 89 F3 48 81 EC C8 00 00 00")).RCast< decltype(UTIL_RespawnPlayer) >();
 	if (!UTIL_RespawnPlayer)
 	{
 		V_strncpy(error, "Failed to find function to get UTIL_RespawnPlayer", maxlen);
