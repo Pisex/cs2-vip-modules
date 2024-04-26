@@ -6,7 +6,6 @@ VIPEndurance g_VIPEndurance;
 IVIPApi* g_pVIPCore;
 
 IVEngineServer2* engine = nullptr;
-CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
@@ -16,7 +15,7 @@ SH_DECL_HOOK3_void(IServerGameDLL, GameFrame, SH_NOATTRIB, 0, bool, bool, bool);
 bool VIPEndurance::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	GET_V_IFACE_ANY(GetEngineFactory, g_pCSchemaSystem, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetServerFactory, g_pSource2Server, ISource2Server, SOURCE2SERVER_INTERFACE_VERSION);
 	SH_ADD_HOOK(IServerGameDLL, GameFrame, g_pSource2Server, SH_MEMBER(this, &VIPEndurance::GameFrame), true);
@@ -39,7 +38,7 @@ void VIPEndurance::GameFrame(bool simulating, bool bFirstTick, bool bLastTick)
 		{
 			CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(i + 1));
 			if(!pPlayerController) continue;
-			CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
+			CCSPlayerPawn* pPlayerPawn = pPlayerController->m_hPlayerPawn();
 			if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE)
 				continue;
 			if(g_bEndurance[i] && pPlayerPawn->m_flVelocityModifier() < 1.0)

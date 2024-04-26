@@ -5,5 +5,4 @@
 class CCSPlayerPawnBase : public CBasePlayerPawn
 {
 public:
-	SCHEMA_FIELD(int32_t, CCSPlayerPawnBase, m_ArmorValue);
 };

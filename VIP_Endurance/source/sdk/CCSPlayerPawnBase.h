@@ -5,5 +5,4 @@
 class CCSPlayerPawnBase : public CBasePlayerPawn
 {
 public:
-    SCHEMA_FIELD(float, CCSPlayerPawnBase, m_flVelocityModifier);
 };
