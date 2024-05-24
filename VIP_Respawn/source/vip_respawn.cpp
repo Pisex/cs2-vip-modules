@@ -7,7 +7,6 @@ IVIPApi* g_pVIPCore;
 IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
-CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
@@ -74,13 +73,13 @@ bool OnSelect(int iSlot, const char* szFeature)
 bool vip_respawn::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	GET_V_IFACE_ANY(GetEngineFactory, g_pCSchemaSystem, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetServerFactory, g_pSource2Server, ISource2Server, SOURCE2SERVER_INTERFACE_VERSION);
 	g_SMAPI->AddListener( this, this );
 
 	CModule libserver(g_pSource2Server);
-	UTIL_RespawnPlayer = libserver.FindPatternSIMD(WIN_LINUX("44 88 4C 24 20 55 57", "55 48 89 E5 41 57 41 56 41 55 41 54 49 89 FC 53 48 89 F3 48 81 EC C8 00 00 00")).RCast< decltype(UTIL_RespawnPlayer) >();
+	UTIL_RespawnPlayer = libserver.FindPatternSIMD(WIN_LINUX("44 88 4C 24 20 55 57", "55 48 89 E5 41 57 41 56 41 89 D6 41 55 49 89 FD 41 54 45 89 C4")).RCast< decltype(UTIL_RespawnPlayer) >();
 	if (!UTIL_RespawnPlayer)
 	{
 		V_strncpy(error, "Failed to find function to get UTIL_RespawnPlayer", maxlen);
