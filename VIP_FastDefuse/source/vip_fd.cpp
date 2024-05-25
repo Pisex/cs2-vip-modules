@@ -7,7 +7,6 @@ IVIPApi* g_pVIPCore;
 IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
-CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 CGlobalVars* gpGlobals = nullptr;
@@ -17,7 +16,7 @@ SH_DECL_HOOK3_void(IServerGameDLL, GameFrame, SH_NOATTRIB, 0, bool, bool, bool);
 bool vip_fd::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	GET_V_IFACE_ANY(GetEngineFactory, g_pCSchemaSystem, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_ANY(GetEngineFactory, g_pNetworkServerService, INetworkServerService, NETWORKSERVERSERVICE_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetServerFactory, g_pSource2Server, ISource2Server, SOURCE2SERVER_INTERFACE_VERSION);
@@ -40,20 +39,20 @@ void OnBeginDefuse(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 	int iValue = g_pVIPCore->VIP_GetClientFeatureInt(iUserID, "fd");
 	if(g_pVIPCore->VIP_IsClientVIP(iUserID) && iValue)
 	{
-		CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iUserID + 1));
+		CCSPlayerController* pPlayerController =  CCSPlayerController::FromSlot(iUserID);
 		if(!pPlayerController) return;
-		CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
+		CCSPlayerPawn* pPlayerPawn = pPlayerController->GetPlayerPawn();
 		if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE) return;
 
 		CPlantedC4* pBomb = (CPlantedC4*)UTIL_FindEntityByClassname("planted_c4");
 		g_pUtils->NextFrame([pPlayerPawn, pBomb, iValue](){
 			float fCountDown;
-			if(pBomb->m_flDefuseCountDown().m_Value < gpGlobals->curtime)
+			if(pBomb->m_flDefuseCountDown().m_Value() < gpGlobals->curtime)
 				fCountDown = 10.0;
 			else
-				fCountDown = pBomb->m_flDefuseCountDown().m_Value - gpGlobals->curtime;
+				fCountDown = pBomb->m_flDefuseCountDown().m_Value() - gpGlobals->curtime;
 			fCountDown -= fCountDown/100.0*float(iValue);
-			pBomb->m_flDefuseCountDown().m_Value = fCountDown + gpGlobals->curtime;
+			pBomb->m_flDefuseCountDown().m_Value() = fCountDown + gpGlobals->curtime;
 			pPlayerPawn->m_iProgressBarDuration() = ceil(fCountDown);
 		});
 	}

@@ -7,7 +7,6 @@ IVIPApi* g_pVIPCore;
 IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
-CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 CGlobalVars* gpGlobals = nullptr;
@@ -18,7 +17,7 @@ PLUGIN_EXPOSE(VIP_KS, g_VIP_KS);
 bool VIP_KS::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	GET_V_IFACE_ANY(GetEngineFactory, g_pCSchemaSystem, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
 	g_SMAPI->AddListener( this, this );
@@ -67,8 +66,7 @@ void OnPlayerDeath(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 		CCSPlayerPawn* pPlayer = pPlayerController->m_hPlayerPawn().Get();
 		if(pPlayer)
 		{
-			Msg("DEBUG: %f | %f\n", gpGlobals->curtime, fTime);	
-			pPlayer->m_flHealthShotBoostExpirationTime().m_Value = gpGlobals->curtime + fTime;
+			pPlayer->m_flHealthShotBoostExpirationTime().m_Value() = gpGlobals->curtime + fTime;
 			g_pUtils->SetStateChanged(pPlayer, "CCSPlayerPawn", "m_flHealthShotBoostExpirationTime");
 		}
 	}

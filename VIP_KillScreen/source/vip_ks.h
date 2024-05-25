@@ -8,12 +8,10 @@
 #include "ehandle.h"
 #include <sh_vector.h>
 #include <entity2/entitysystem.h>
-#include "sdk/utils.hpp"
-#include "sdk/schemasystem.h"
-#include "sdk/CBaseEntity.h"
-#include "sdk/CBasePlayerPawn.h"
-#include "sdk/CCSPlayerController.h"
-#include "sdk/CGameRules.h"
+#include "utils.hpp"
+#include "schemasystem.h"
+#include "CCSPlayerController.h"
+#include "CGameRules.h"
 #include "iserver.h"
 #include "include/vip.h"
 #include "include/menus.h"

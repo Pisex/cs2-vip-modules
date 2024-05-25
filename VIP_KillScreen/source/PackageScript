@@ -35,3 +35,5 @@ for task in MMSPlugin.binaries:
     pdb_list.append(task.debug)
 
 builder.AddCopy(os.path.join(builder.buildPath, MMSPlugin.plugin_name + '.vdf'), metamod_folder)
+configs_folder = builder.AddFolder(os.path.join('addons', 'configs', "vip"))
+builder.AddCopy(os.path.join(builder.sourcePath, 'configs', 'vip_ks.ini'), configs_folder)

@@ -7,7 +7,6 @@ IVIPApi* g_pVIPCore;
 IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
-CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 CGlobalVars* gpGlobals = nullptr;
@@ -17,7 +16,7 @@ SH_DECL_HOOK3_void(IServerGameDLL, GameFrame, SH_NOATTRIB, 0, bool, bool, bool);
 bool vip_fp::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	GET_V_IFACE_ANY(GetEngineFactory, g_pCSchemaSystem, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_ANY(GetEngineFactory, g_pNetworkServerService, INetworkServerService, NETWORKSERVERSERVICE_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetServerFactory, g_pSource2Server, ISource2Server, SOURCE2SERVER_INTERFACE_VERSION);
@@ -39,7 +38,7 @@ void OnBeginPlant(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 	bool bValue = g_pVIPCore->VIP_GetClientFeatureBool(iUserID, "fp");
 	if(g_pVIPCore->VIP_IsClientVIP(iUserID) && bValue)
 	{
-		CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iUserID + 1));
+		CCSPlayerController* pPlayerController =  CCSPlayerController::FromSlot(iUserID);
 		if(!pPlayerController) return;
 		CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
 		if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE) return;
@@ -49,7 +48,7 @@ void OnBeginPlant(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 		if(hActiveWeapon && strstr(hActiveWeapon->GetClassname(), "c4"))
 		{
 			CC4* cC4 = (CC4*)hActiveWeapon;
-			cC4->m_fArmedTime().m_Value = gpGlobals->curtime;
+			cC4->m_fArmedTime().m_Value() = gpGlobals->curtime;
 		}
 	}
 }
