@@ -27,7 +27,7 @@ bool OnRespawnCommand(int iSlot, const char* szContent)
 		{
 			if(iCount > g_iRespawns[iSlot] || iCount == 0)
 			{
-				CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iSlot + 1));
+				CCSPlayerController* pPlayerController =  CCSPlayerController::FromSlot(iSlot);
 				if(!pPlayerController) return false;
 				CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
 				if (!pPlayerPawn || pPlayerPawn->m_lifeState() == LIFE_ALIVE)
@@ -56,7 +56,7 @@ bool OnRespawnCommand(int iSlot, const char* szContent)
 					if (pawn)
 						UTIL_RespawnPlayer(pPlayerController, pawn, true, false);
 				}
-				pPlayerController->ForceRespawn();
+				pPlayerController->Respawn();
 			}
 			else g_pUtils->PrintToChat(iSlot, g_pVIPCore->VIP_GetTranslate("LimitRespawn"));
 		}
@@ -78,8 +78,8 @@ bool vip_respawn::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, b
 	GET_V_IFACE_CURRENT(GetServerFactory, g_pSource2Server, ISource2Server, SOURCE2SERVER_INTERFACE_VERSION);
 	g_SMAPI->AddListener( this, this );
 
-	CModule libserver(g_pSource2Server);
-	UTIL_RespawnPlayer = libserver.FindPatternSIMD(WIN_LINUX("44 88 4C 24 20 55 57", "55 48 89 E5 41 57 41 56 41 89 D6 41 55 49 89 FD 41 54 45 89 C4")).RCast< decltype(UTIL_RespawnPlayer) >();
+	DynLibUtils::CModule libserver(g_pSource2Server);
+	UTIL_RespawnPlayer = libserver.FindPattern(WIN_LINUX("44 88 4C 24 20 55 57", "55 48 89 E5 41 57 41 56 41 89 D6 41 55 49 89 FD 41 54 45 89 C4")).RCast< decltype(UTIL_RespawnPlayer) >();
 	if (!UTIL_RespawnPlayer)
 	{
 		V_strncpy(error, "Failed to find function to get UTIL_RespawnPlayer", maxlen);
