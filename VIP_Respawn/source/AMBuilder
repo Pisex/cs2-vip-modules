@@ -10,6 +10,7 @@ for sdk_target in MMSPlugin.sdk_targets:
     sdk = sdk_target.sdk
     cxx = sdk_target.cxx
 
+    cxx.cxxflags += ['-Wno-invalid-offsetof']
     binary = MMSPlugin.HL2Library(builder, cxx, MMSPlugin.plugin_name, sdk)
 
     binary.custom = [builder.tools.Protoc(protoc = sdk_target.protoc, sources = [
