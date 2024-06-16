@@ -1,27 +1,27 @@
-# [VIP] Regen Armor
+# [VIP] Regen HP
 My Discord server - https://discord.com/invite/g798xERK5Y
 
-Adds armor regeneration feature to VIP
+Adds a health regeneration feature to VIP
 
 In **groups.ini** add:
 ```
-"RegenArmor" "Number of armor units per interval"
-"DelayRegenArmor" "Delay before starting recovery (in seconds)"
-"IntervalRegenArmor" "Recovery interval (in seconds)"
+"RegenHP" "Number of HP per interval"
+"DelayRegenHP" "Delay before starting recovery (in seconds)"
+"IntervalRegenHP" "Recovery interval (in seconds)"
 ```
 Example:
 ```
-"RegenArmor" "10"
-"DelayRegenArmor" "5"
-"IntervalRegenArmor" "2"
+"RegenHP" "10"
+"DelayRegenHP" "5"
+"IntervalRegenHP" "2"
 ```
-After damaging the player, 5 seconds must pass and recovery will begin at a rate of 10 units of armor every 2 seconds.
+After damaging the player, 5 seconds must pass and recovery will begin at a rate of 10 xp every 2 seconds.
 
 In **vip.phrases.txt** add:
 ```
-	"RegenArmor"
+	"RegenHP"
 	{
-		"en"	"Regen Armor"
-		"ru"	"Реген Брони"
+		"en"	"Regen HP"
+		"ru"	"Реген ХП"
 	}
 ```
