@@ -8,14 +8,10 @@
 #include "ehandle.h"
 #include <sh_vector.h>
 #include <entity2/entitysystem.h>
-#include "sdk/utils.hpp"
-#include "sdk/schemasystem.h"
-#include "sdk/CBaseEntity.h"
-#include "sdk/CBasePlayerPawn.h"
-#include "sdk/CCSPlayerController.h"
-#include "sdk/CCSPlayer_ItemServices.h"
+#include "CCSPlayerController.h"
 #include "iserver.h"
 #include "include/vip.h"
+#include "include/menus.h"
 #include <string>
 #include <ctime>
 
@@ -34,8 +30,6 @@ public:
 	const char *GetVersion();
 	const char *GetDate();
 	const char *GetLogTag();
-private:
-	void GameFrame(bool simulating, bool bFirstTick, bool bLastTick);
 };
 
 extern vip_bhop g_vip_bhop;

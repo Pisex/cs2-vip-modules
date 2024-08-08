@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "vip_fov.h"
+#include "schemasystem/schemasystem.h"
 
 VIPFov g_VIPFov;
 
@@ -12,7 +13,6 @@ IMenusApi* g_pMenus;
 IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
-CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
@@ -22,7 +22,7 @@ PLUGIN_EXPOSE(VIPFov, g_VIPFov);
 bool VIPFov::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	GET_V_IFACE_ANY(GetEngineFactory, g_pCSchemaSystem, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	g_SMAPI->AddListener( this, this );
 	return true;
@@ -53,13 +53,11 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 {
 	if(bIsVIP)
 	{
-		auto pController = (CCSPlayerController*)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iSlot + 1));
-		if (!pController)
-			return;
+		CCSPlayerController* pController = CCSPlayerController::FromSlot(iSlot);
+		if (!pController) return;
 		uint64_t m_steamID = pController->m_steamID();
-		if(m_steamID == 0 || !pController->m_hPawn().Get())
-			return;
-
+		if(m_steamID == 0 || !pController->m_hPawn()) return;
+		if(pController->m_iDesiredFOV() != 90) return;
 		if(g_pVIPCore->VIP_GetClientFeatureString(iSlot, "FOV")[0])
 		{
 			const char* szFOV = g_pVIPCore->VIP_GetClientCookie(iSlot, "FOV_Value");
@@ -72,26 +70,24 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 
 CGameEntitySystem* GameEntitySystem()
 {
-    return g_pVIPCore->VIP_GetEntitySystem();
+    return g_pUtils->GetCGameEntitySystem();
 };
 
-void VIP_OnVIPLoaded()
+void OnStartupServer()
 {
 	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
-	g_pVIPCore->VIP_OnClientLoaded(VIP_OnClientLoaded);
-	g_pVIPCore->VIP_OnPlayerSpawn(VIP_OnPlayerSpawn);
 }
 
 void FOVMenuHandle(const char* szBack, const char* szFront, int iItem, int iSlot)
 {
 	if(iItem < 7)
 	{
-		auto pController = (CCSPlayerController*)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iSlot + 1));
+		CCSPlayerController* pController = CCSPlayerController::FromSlot(iSlot);
 		if (!pController)
 			return;
 		uint64_t m_steamID = pController->m_steamID();
-		if(m_steamID == 0 || !pController->m_hPawn().Get())
+		if(m_steamID == 0 || !pController->m_hPawn())
 			return;
 
 		int iFOV = std::stoi(szBack);
@@ -119,18 +115,16 @@ void VIPFov::AllPluginsLoaded()
 {
 	char error[64] = { 0 };
 	int ret;
-	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
-
+	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
 	if (ret == META_IFACE_FAILED)
 	{
 		char error[64];
-		V_strncpy(error, "Failed to lookup vip core. Aborting", 64);
+		V_strncpy(error, "Failed to lookup utils api. Aborting", 64);
 		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
 		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
-
 	g_pMenus = (IMenusApi*)g_SMAPI->MetaFactory(Menus_INTERFACE, &ret, NULL);
 	if (ret == META_IFACE_FAILED)
 	{
@@ -141,18 +135,18 @@ void VIPFov::AllPluginsLoaded()
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
-
-	g_pUtils = (IUtilsApi *)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
+	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
 	if (ret == META_IFACE_FAILED)
 	{
-		V_strncpy(error, "Missing Utils system plugin", 64);
-		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
+		g_pUtils->ErrorLog("[%s] Failed to lookup vip core. Aborting", GetLogTag());
 		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
 
-	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pUtils->StartupServer(g_PLID, OnStartupServer);
+	g_pVIPCore->VIP_OnClientLoaded(VIP_OnClientLoaded);
+	g_pVIPCore->VIP_OnPlayerSpawn(VIP_OnPlayerSpawn);
 	g_pVIPCore->VIP_RegisterFeature("FOV", VIP_BOOL, SELECTABLE, OnSelect);
 }
 

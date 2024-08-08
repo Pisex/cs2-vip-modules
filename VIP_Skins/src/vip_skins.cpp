@@ -10,19 +10,11 @@ IUtilsApi* g_pUtils;
 IMenusApi* g_pMenus;
 IVIPApi* g_pVIPCore;
 
-float g_flUniversalTime;
-float g_flLastTickedTime;
-bool g_bHasTicked;
-
 IVEngineServer2* engine = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
 PLUGIN_EXPOSE(vip_skins, g_vip_skins);
-
-SH_DECL_HOOK3_void(IServerGameDLL, GameFrame, SH_NOATTRIB, 0, bool, bool, bool);
-
-void (*UTIL_SetModel)(CBaseModelEntity*, const char* szModel) = nullptr;
 
 struct Skin
 {
@@ -62,10 +54,9 @@ void LoadConfig()
 
 void StartupServer()
 {
-	g_bHasTicked = false;
 	LoadConfig();
 	g_pGameEntitySystem = GameEntitySystem();
-	g_pEntitySystem = g_pUtils->GetCEntitySystem();
+	g_pEntitySystem = g_pGameEntitySystem;
 }
 
 bool vip_skins::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
@@ -79,62 +70,13 @@ bool vip_skins::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, boo
 	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
 	ConVar_Register(FCVAR_RELEASE | FCVAR_CLIENT_CAN_EXECUTE | FCVAR_GAMEDLL);
 
-	SH_ADD_HOOK(IServerGameDLL, GameFrame, g_pSource2Server, SH_MEMBER(this, &vip_skins::GameFrame), true);
-
-	DynLibUtils::CModule libserver(g_pSource2Server);
-	UTIL_SetModel = libserver.FindPattern("55 48 89 F2 48 89 E5 41 54 49 89 FC 48 8D 7D E0 48 83 EC 18 48 8D 05 ? ? ? ? 48 8B 30 48 8B 06").RCast< decltype(UTIL_SetModel) >();
-	if (!UTIL_SetModel)
-	{
-		V_strncpy(error, "Failed to find function to get UTIL_SetModel", maxlen);
-		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
-
-		return false;
-	}
-
 	g_SMAPI->AddListener( this, this );
 	return true;
 }
 
 bool vip_skins::Unload(char *error, size_t maxlen)
 {
-	SH_REMOVE_HOOK(IServerGameDLL, GameFrame, g_pSource2Server, SH_MEMBER(this, &vip_skins::GameFrame), true);
 	return true;
-}
-
-void vip_skins::GameFrame(bool simulating, bool bFirstTick, bool bLastTick)
-{
-	if (simulating && g_bHasTicked)
-	{
-		g_flUniversalTime += g_pUtils->GetCGlobalVars()->curtime - g_flLastTickedTime;
-	}
-
-	g_flLastTickedTime = g_pUtils->GetCGlobalVars()->curtime;
-	g_bHasTicked = true;
-
-	for (int i = g_timers.Tail(); i != g_timers.InvalidIndex();)
-	{
-		auto timer = g_timers[i];
-
-		int prevIndex = i;
-		i = g_timers.Previous(i);
-
-		if (timer->m_flLastExecute == -1)
-			timer->m_flLastExecute = g_flUniversalTime;
-
-		// Timer execute 
-		if (timer->m_flLastExecute + timer->m_flInterval <= g_flUniversalTime)
-		{
-			if (!timer->Execute())
-			{
-				delete timer;
-				g_timers.Remove(prevIndex);
-			}
-			else
-			{
-				timer->m_flLastExecute = g_flUniversalTime;
-			}
-		}
-	}
 }
 
 void OnPlayerSpawn(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
@@ -144,14 +86,14 @@ void OnPlayerSpawn(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 		return;
 	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && !g_PlayerSkin[iSlot].empty())
 	{
-		auto pController = CCSPlayerController::FromSlot(iSlot);
-		if (!pController)
-			return;
-		if(pController->m_iTeamNum() < 2 || !pController->IsAlive())
-			return;
-		g_DefaultSkin[iSlot] = pController->m_hPawn()->GetModelName();
-		new CTimer(g_fTime, [pController, iSlot]() -> float {
-			UTIL_SetModel(pController->m_hPawn().Get(), g_SkinsList[g_PlayerSkin[iSlot]].sModel.c_str());
+		g_pUtils->CreateTimer(g_fTime, [iSlot]() {
+			auto pController = CCSPlayerController::FromSlot(iSlot);
+			if (!pController) return -1.0f;
+			if(pController->m_iTeamNum() < 2 || !pController->IsAlive()) return -1.0f;
+			if(!pController->m_hPawn()) return -1.0f;
+			g_DefaultSkin[iSlot] = pController->m_hPawn()->GetModelName().String();
+			if(g_SkinsList[g_PlayerSkin[iSlot]].sModel.size())
+				g_pUtils->SetEntityModel(pController->m_hPawn(), g_SkinsList[g_PlayerSkin[iSlot]].sModel.c_str());
 			return -1.0f;
 		});
 	}
@@ -164,7 +106,7 @@ void SkinsMenuHandle(const char* szBack, const char* szFront, int iItem, int iSl
 		if (!pController)
 			return;
 		uint64_t m_steamID = pController->m_steamID();
-		if(m_steamID == 0 || !pController->m_hPawn().Get())
+		if(m_steamID == 0 || !pController->m_hPawn())
 			return;
 		
 		if(pController->m_iTeamNum() < 2 || !pController->IsAlive())
@@ -173,11 +115,13 @@ void SkinsMenuHandle(const char* szBack, const char* szFront, int iItem, int iSl
 		g_PlayerSkin[iSlot] = szBack;
 		g_pVIPCore->VIP_SetClientCookie(iSlot, "skin", szBack);
 		if(!szBack[0])
-			UTIL_SetModel(pController->m_hPawn().Get(), g_DefaultSkin[iSlot].c_str());
+			if(g_DefaultSkin[iSlot].size())
+				g_pUtils->SetEntityModel(pController->m_hPawn(), g_DefaultSkin[iSlot].c_str());
 		else
 		{
-			g_DefaultSkin[iSlot] = pController->m_hPawn()->GetModelName();
-			UTIL_SetModel(pController->m_hPawn().Get(), g_SkinsList[szBack].sModel.c_str());
+			g_DefaultSkin[iSlot] = pController->m_hPawn()->GetModelName().String();
+			if(g_SkinsList[szBack].sModel.size())
+				g_pUtils->SetEntityModel(pController->m_hPawn(), g_SkinsList[szBack].sModel.c_str());
 		}
 	}
 }
@@ -204,6 +148,7 @@ bool OnSelect(int iSlot, const char* szFeature)
 void OnClientLoaded(int iSlot, bool bIsVIP)
 {
 	g_PlayerSkin[iSlot] = "";
+	g_DefaultSkin[iSlot] = "";
 	if(bIsVIP)
 	{
 		std::string skin = g_pVIPCore->VIP_GetClientCookie(iSlot, "skin");

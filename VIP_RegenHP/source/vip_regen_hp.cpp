@@ -10,21 +10,13 @@ IUtilsApi* g_pUtils;
 IMenusApi* g_pMenus;
 IVIPApi* g_pVIPCore;
 
-float g_flUniversalTime;
-float g_flLastTickedTime;
-bool g_bHasTicked;
-
 IVEngineServer2* engine = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
 PLUGIN_EXPOSE(vip_regen_hp, g_vip_regen_hp);
 
-SH_DECL_HOOK3_void(IServerGameDLL, GameFrame, SH_NOATTRIB, 0, bool, bool, bool);
-
 bool g_bRegen[64];
-int g_iClientDelayTicks[64],
-	g_iClientRegenTicks[64];
 
 CGameEntitySystem* GameEntitySystem()
 {
@@ -33,9 +25,8 @@ CGameEntitySystem* GameEntitySystem()
 
 void StartupServer()
 {
-	g_bHasTicked = false;
 	g_pGameEntitySystem = GameEntitySystem();
-	g_pEntitySystem = g_pUtils->GetCEntitySystem();
+	g_pEntitySystem = g_pGameEntitySystem;
 }
 
 bool RegenHP(int iSlot)
@@ -43,22 +34,22 @@ bool RegenHP(int iSlot)
 	auto pController = CCSPlayerController::FromSlot(iSlot);
 	if (!pController)
 		return false;
-	if(pController->m_iTeamNum() < 2 || !pController->IsAlive())
-		return false;
-	int iMaxHP = pController->GetPlayerPawn()->m_iMaxHealth();
-	int iHP = pController->GetPlayerPawn()->m_iHealth();
-	if(iHP < iMaxHP)
+	if(pController->m_iTeamNum() > 2 && pController->IsAlive())
 	{
-		iHP += g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenHP");
+		int iMaxHP = pController->GetPlayerPawn()->m_iMaxHealth();
+		int iHP = pController->GetPlayerPawn()->m_iHealth();
 		if(iHP < iMaxHP)
 		{
-			pController->GetPlayerPawn()->m_iHealth(iHP);
-			return true;
+			iHP += g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenHP");
+			if(iHP < iMaxHP)
+			{
+				pController->GetPlayerPawn()->m_iHealth(iHP);
+				return true;
+			}
+			pController->GetPlayerPawn()->m_iHealth(iMaxHP);
 		}
-		pController->GetPlayerPawn()->m_iHealth(iMaxHP);
 	}
 	g_bRegen[iSlot] = false;
-
 	return false;
 }
 
@@ -73,79 +64,13 @@ bool vip_regen_hp::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
 	ConVar_Register(FCVAR_RELEASE | FCVAR_CLIENT_CAN_EXECUTE | FCVAR_GAMEDLL);
 
-	SH_ADD_HOOK(IServerGameDLL, GameFrame, g_pSource2Server, SH_MEMBER(this, &vip_regen_hp::GameFrame), true);
-
-	new CTimer(1.0f, []() {
-		for(int i = 0; i < 64; i++)
-		{
-			if(g_bRegen[i])
-			{
-				CCSPlayerController* pController = CCSPlayerController::FromSlot(i);
-				if(!pController)
-					continue;
-				if(pController->m_iTeamNum() < 2 || !pController->IsAlive())
-					continue;
-				if(g_iClientDelayTicks[i] > 0)
-				{
-					g_iClientDelayTicks[i]--;
-					continue;
-				}
-				if(g_iClientRegenTicks[i] > 0)
-				{
-					g_iClientRegenTicks[i]--;
-					continue;
-				}
-				if(RegenHP(i))
-					g_iClientRegenTicks[i] = g_pVIPCore->VIP_GetClientFeatureInt(i, "IntervalRegenHP");
-			}
-		}
-		return 1.0f;
-	});
-
 	g_SMAPI->AddListener( this, this );
 	return true;
 }
 
 bool vip_regen_hp::Unload(char *error, size_t maxlen)
 {
-	SH_REMOVE_HOOK(IServerGameDLL, GameFrame, g_pSource2Server, SH_MEMBER(this, &vip_regen_hp::GameFrame), true);
 	return true;
-}
-
-void vip_regen_hp::GameFrame(bool simulating, bool bFirstTick, bool bLastTick)
-{
-	if (simulating && g_bHasTicked)
-	{
-		g_flUniversalTime += g_pUtils->GetCGlobalVars()->curtime - g_flLastTickedTime;
-	}
-
-	g_flLastTickedTime = g_pUtils->GetCGlobalVars()->curtime;
-	g_bHasTicked = true;
-
-	for (int i = g_timers.Tail(); i != g_timers.InvalidIndex();)
-	{
-		auto timer = g_timers[i];
-
-		int prevIndex = i;
-		i = g_timers.Previous(i);
-
-		if (timer->m_flLastExecute == -1)
-			timer->m_flLastExecute = g_flUniversalTime;
-
-		// Timer execute 
-		if (timer->m_flLastExecute + timer->m_flInterval <= g_flUniversalTime)
-		{
-			if (!timer->Execute())
-			{
-				delete timer;
-				g_timers.Remove(prevIndex);
-			}
-			else
-			{
-				timer->m_flLastExecute = g_flUniversalTime;
-			}
-		}
-	}
 }
 
 void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
@@ -161,10 +86,21 @@ void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 		if(pController->m_iTeamNum() < 2 || !pController->IsAlive())
 			return;
 		
-		if( g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenHP") == 0 )
+		if( g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenHP") == 0 || pEvent->GetInt("health") == 0)
 			return;
-		g_bRegen[iSlot] = true;
-		g_iClientDelayTicks[iSlot] = g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "DelayRegenHP");
+		if(g_bRegen[iSlot]) return;
+		g_pUtils->CreateTimer(g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "DelayRegenHP"), [iSlot](){
+			if(!g_bRegen[iSlot]) return -1.0f; 
+			if(RegenHP(iSlot))
+				return g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "IntervalRegenHP");
+			g_pUtils->CreateTimer(g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "IntervalRegenHP"), [iSlot](){
+				if(!g_bRegen[iSlot]) return -1.0f; 
+				if(RegenHP(iSlot))
+					return g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "IntervalRegenHP");
+				return -1.0f;
+			});
+			return -1.0f;
+		});
 	}
 }
 

@@ -9,7 +9,6 @@ IUtilsApi* g_pUtils;
 IVEngineServer2* engine = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
-CGlobalVars* gpGlobals = nullptr;
 
 float fTime;
 
@@ -41,7 +40,6 @@ bool VIP_KS::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool l
 bool VIP_KS::Unload(char *error, size_t maxlen)
 {
 	delete g_pVIPCore;
-	g_pUtils->ClearAllHooks(g_PLID);
 	delete g_pUtils;
 	return true;
 }
@@ -53,9 +51,8 @@ CGameEntitySystem* GameEntitySystem()
 
 void OnStartupServer()
 {
-	gpGlobals = g_pUtils->GetCGlobalVars();
 	g_pGameEntitySystem = GameEntitySystem();
-	g_pEntitySystem = g_pUtils->GetCEntitySystem();
+	g_pEntitySystem = g_pGameEntitySystem;
 }
 
 void OnPlayerDeath(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
@@ -63,10 +60,10 @@ void OnPlayerDeath(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 	CCSPlayerController* pPlayerController = static_cast<CCSPlayerController*>(pEvent->GetPlayerController("attacker"));
     if(pPlayerController && pEvent->GetInt("attacker") != pEvent->GetInt("userid") && g_pVIPCore->VIP_GetClientFeatureBool(pEvent->GetInt("attacker"), "killscreen"))
 	{
-		CCSPlayerPawn* pPlayer = pPlayerController->m_hPlayerPawn().Get();
+		CCSPlayerPawn* pPlayer = pPlayerController->m_hPlayerPawn();
 		if(pPlayer)
 		{
-			pPlayer->m_flHealthShotBoostExpirationTime().m_Value() = gpGlobals->curtime + fTime;
+			pPlayer->m_flHealthShotBoostExpirationTime().m_Value() =  g_pUtils->GetCGlobalVars()->curtime + fTime;
 			g_pUtils->SetStateChanged(pPlayer, "CCSPlayerPawn", "m_flHealthShotBoostExpirationTime");
 		}
 	}

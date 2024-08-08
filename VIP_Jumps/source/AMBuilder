@@ -10,6 +10,7 @@ for sdk_target in MMSPlugin.sdk_targets:
     sdk = sdk_target.sdk
     cxx = sdk_target.cxx
 
+    cxx.cxxflags += ['-Wno-invalid-offsetof']
     binary = MMSPlugin.HL2Library(builder, cxx, MMSPlugin.plugin_name, sdk)
 
     binary.custom = [builder.tools.Protoc(protoc = sdk_target.protoc, sources = [
@@ -18,20 +19,12 @@ for sdk_target in MMSPlugin.sdk_targets:
     
     binary.compiler.cxxincludes += [
       os.path.join(builder.sourcePath, 'include'),
+      os.path.join(builder.sourcePath, '..', 'SchemaEntity'),
     ]
 
     binary.sources += [
       'vip_jumps.cpp',
-      os.path.join('sdk', 'schemasystem.cpp')
-    ]
-
-    if sdk_target in ['dota', 'cs2']:
-      binary.sources += [
-      os.path.join(sdk.path, 'tier1', 'convar.cpp'),
-      os.path.join(sdk.path, 'tier1', 'generichash.cpp'),
-      os.path.join(sdk.path, 'entity2', 'entitysystem.cpp'),
-      os.path.join(sdk.path, 'entity2', 'entityidentity.cpp'),
-      os.path.join(sdk.path, 'public', 'tier0', 'memoverride.cpp')
+      os.path.join('..', 'SchemaEntity', 'schemasystem.cpp'),
     ]
 
     if cxx.target.arch == 'x86':

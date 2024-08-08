@@ -12,6 +12,7 @@ import os
 for sdk_target in MMSPlugin.sdk_targets:
   sdk = sdk_target.sdk
   cxx = sdk_target.cxx
+  cxx.cxxflags += ['-Wno-invalid-offsetof']
 
   binary = MMSPlugin.HL2Library(builder, cxx, MMSPlugin.plugin_name, sdk)
 
@@ -29,7 +30,6 @@ for sdk_target in MMSPlugin.sdk_targets:
     'vip_skins.cpp',
       os.path.join('..', 'SchemaEntity', 'schemasystem.cpp'),
       os.path.join('..', 'SchemaEntity', 'module.cpp'),
-      os.path.join('..', 'SchemaEntity', 'ctimer.cpp'),
   ]
     
   if cxx.target.arch == 'x86':

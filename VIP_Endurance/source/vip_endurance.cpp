@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include "vip_endurance.h"
+#include "schemasystem/schemasystem.h"
 
 VIPEndurance g_VIPEndurance;
 
 IVIPApi* g_pVIPCore;
+IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
@@ -36,10 +38,10 @@ void VIPEndurance::GameFrame(bool simulating, bool bFirstTick, bool bLastTick)
 	{
 		for (int i = 0; i < 64; i++)
 		{
-			CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(i + 1));
+			CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(i);
 			if(!pPlayerController) continue;
 			CCSPlayerPawn* pPlayerPawn = pPlayerController->m_hPlayerPawn();
-			if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE)
+			if (!pPlayerPawn || !pPlayerPawn->IsAlive())
 				continue;
 			if(g_bEndurance[i] && pPlayerPawn->m_flVelocityModifier() < 1.0)
 			{
@@ -48,11 +50,6 @@ void VIPEndurance::GameFrame(bool simulating, bool bFirstTick, bool bLastTick)
 		}
 	}
 }
-
-CGameEntitySystem* GameEntitySystem()
-{
-    return g_pVIPCore->VIP_GetEntitySystem();
-};
 
 void OnClientLoaded(int iSlot, bool bIsVIP)
 {
@@ -73,31 +70,42 @@ bool OnTogglable(int iSlot, const char* szFeature, VIP_ToggleState eOldStatus, V
 	return false;
 }
 
-void VIP_OnVIPLoaded()
+CGameEntitySystem* GameEntitySystem()
+{
+    return g_pUtils->GetCGameEntitySystem();
+};
+
+void OnStartupServer()
 {
 	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
-	g_pVIPCore->VIP_OnClientLoaded(OnClientLoaded);
-	g_pVIPCore->VIP_OnClientDisconnect(OnClientDisconnect);
 }
 
 void VIPEndurance::AllPluginsLoaded()
 {
-	char error[64] = { 0 };
 	int ret;
-	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
-
+	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
 	if (ret == META_IFACE_FAILED)
 	{
 		char error[64];
-		V_strncpy(error, "Failed to lookup vip core. Aborting", 64);
+		V_strncpy(error, "Failed to lookup utils api. Aborting", 64);
 		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
 		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
+	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
+	if (ret == META_IFACE_FAILED)
+	{
+		g_pUtils->ErrorLog("[%s] Failed to lookup vip core. Aborting", GetLogTag());
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
 
-	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pUtils->StartupServer(g_PLID, OnStartupServer);
+	g_pVIPCore->VIP_OnClientLoaded(OnClientLoaded);
+	g_pVIPCore->VIP_OnClientDisconnect(OnClientDisconnect);
 	g_pVIPCore->VIP_RegisterFeature("Endurance", VIP_BOOL, TOGGLABLE, nullptr, OnTogglable);
 }
 

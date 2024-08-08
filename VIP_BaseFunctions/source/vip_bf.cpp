@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include "vip_bf.h"
+#include <sstream>
+#include "schemasystem/schemasystem.h"
 
 vip_bf g_vip_bf;
 
+IUtilsApi* g_pUtils;
 IVIPApi* g_pVIPCore;
 
 IVEngineServer2* engine = nullptr;
@@ -43,13 +46,10 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 	{
 		if((iRoundMin == 1 && !g_pVIPCore->VIP_PistolRound()) || (iRoundMin <= g_pVIPCore->VIP_GetTotalRounds() && !g_pVIPCore->VIP_PistolRound()) || (iRoundMin == 0))
 		{
-			CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iSlot + 1));
+			CCSPlayerController* pPlayerController =  CCSPlayerController::FromSlot(iSlot);
 			if(!pPlayerController) return;
 			CCSPlayerPawn* pPlayerPawn = pPlayerController->m_hPlayerPawn();
-			if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE)
-				return;
-			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
-
+			if (!pPlayerPawn || !pPlayerPawn->IsAlive()) return;
 			const char* sHealth = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "health");
 			if(strlen(sHealth) > 0)
 			{
@@ -57,13 +57,13 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 				{
 					std::string str(sHealth);
 					str.erase(0,2);
-					pPlayerPawn->m_iMaxHealth() += std::stoi(str);
-					pPlayerPawn->m_iHealth() += std::stoi(str);
+					pPlayerPawn->m_iMaxHealth() += atoi(str.c_str());
+					pPlayerPawn->m_iHealth() += atoi(str.c_str());
 				}
 				else
 				{
-					pPlayerPawn->m_iMaxHealth() = std::stoi(sHealth);
-					pPlayerPawn->m_iHealth() = std::stoi(sHealth);
+					pPlayerPawn->m_iMaxHealth() = atoi(sHealth);
+					pPlayerPawn->m_iHealth() = atoi(sHealth);
 				}
 			}
 
@@ -74,14 +74,14 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 				{
 					std::string str(sArmor);
 					str.erase(0,2);
-					pPlayerPawn->m_ArmorValue() += std::stoi(str);
+					pPlayerPawn->m_ArmorValue() += atoi(str.c_str());
 				}
 				else
-					pPlayerPawn->m_ArmorValue() = std::stoi(sArmor);
+					pPlayerPawn->m_ArmorValue() = atoi(sArmor);
 			}
 
 			CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
-
+			if(!pMoneyServices) return;
 			const char* sMoney = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "money");
 			if(strlen(sMoney) > 0)
 			{
@@ -89,12 +89,14 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 				{
 					std::string str(sMoney);
 					str.erase(0,2);
-					pMoneyServices->m_iAccount() += std::stoi(str);
+					pMoneyServices->m_iAccount() += atoi(str.c_str());
 				}
 				else
-					pMoneyServices->m_iAccount() = std::stoi(sMoney);
+					pMoneyServices->m_iAccount() = atoi(sMoney);
 			}
 
+			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
+			if(!pItemServices) return;
 			int bHelmet = g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "helmet");
 			if (bHelmet)
 			{
@@ -113,38 +115,46 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 bool vip_bf::Unload(char *error, size_t maxlen)
 {
 	delete g_pVIPCore;
+	delete g_pUtils;
 	return true;
 }
 
 CGameEntitySystem* GameEntitySystem()
 {
-    return g_pVIPCore->VIP_GetEntitySystem();
+    return g_pUtils->GetCGameEntitySystem();
 };
 
-void VIP_OnVIPLoaded()
+void OnStartupServer()
 {
 	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
-	g_pVIPCore->VIP_OnPlayerSpawn(VIP_OnPlayerSpawn);
 }
 
 void vip_bf::AllPluginsLoaded()
 {
 	int ret;
-	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
-
+	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
 	if (ret == META_IFACE_FAILED)
 	{
 		char error[64];
-		V_strncpy(error, "Failed to lookup vip core. Aborting", 64);
+		V_strncpy(error, "Failed to lookup utils api. Aborting", 64);
 		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
 		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
-	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
+	if (ret == META_IFACE_FAILED)
+	{
+		g_pUtils->ErrorLog("[%s] Failed to lookup vip core. Aborting", GetLogTag());
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
+	g_pUtils->StartupServer(g_PLID, OnStartupServer);
+	g_pVIPCore->VIP_OnPlayerSpawn(VIP_OnPlayerSpawn);
 	g_pVIPCore->VIP_RegisterFeature("health", 	VIP_STRING, TOGGLABLE);
-	g_pVIPCore->VIP_RegisterFeature("armor", 	VIP_STRING, TOGGLABLE);
+	g_pVIPCore->VIP_RegisterFeature("defuser", 	VIP_STRING, TOGGLABLE);
 	g_pVIPCore->VIP_RegisterFeature("money", 	VIP_STRING, TOGGLABLE);
 	g_pVIPCore->VIP_RegisterFeature("helmet", 	VIP_BOOL, TOGGLABLE);
 	g_pVIPCore->VIP_RegisterFeature("defuser", 	VIP_BOOL, TOGGLABLE);
@@ -157,7 +167,7 @@ const char *vip_bf::GetLicense()
 
 const char *vip_bf::GetVersion()
 {
-	return "1.0";
+	return "1.1";
 }
 
 const char *vip_bf::GetDate()

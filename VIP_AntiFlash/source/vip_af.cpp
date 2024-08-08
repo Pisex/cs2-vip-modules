@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "vip_af.h"
+#include "schemasystem/schemasystem.h"
 
 vip_af g_vip_af;
 
@@ -7,7 +8,6 @@ IVIPApi* g_pVIPCore;
 IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
-CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
@@ -15,7 +15,7 @@ PLUGIN_EXPOSE(vip_af, g_vip_af);
 bool vip_af::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	GET_V_IFACE_ANY(GetEngineFactory, g_pCSchemaSystem, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	g_SMAPI->AddListener( this, this );
 	return true;
@@ -23,16 +23,16 @@ bool vip_af::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool l
 
 bool vip_af::Unload(char *error, size_t maxlen)
 {
+	ConVar_Unregister();
 	delete g_pVIPCore;
-	g_pUtils->ClearAllHooks(g_PLID);
 	delete g_pUtils;
 	return true;
 }
 
 void OnPlayerBlind(const char* szName, IGameEvent* event, bool bDontBroadcast)
 {
-	CPlayerSlot pPlayerSlot = event->GetPlayerSlot("userid");
-	if(g_pVIPCore->VIP_IsClientVIP(pPlayerSlot.Get()))
+	int iSlot = event->GetInt("userid");
+	if(g_pVIPCore->VIP_IsClientVIP(iSlot))
 	{
 		CCSPlayerController* pPlayerController = static_cast<CCSPlayerController*>(event->GetPlayerController("userid"));
 		if (!pPlayerController)
@@ -43,15 +43,21 @@ void OnPlayerBlind(const char* szName, IGameEvent* event, bool bDontBroadcast)
 			return;
 
 		CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
-		if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE)
+		if (!pPlayerPawn || !pPlayerPawn->IsAlive())
+			return;
+
+		CCSPlayerPawnBase* pPlayerPawn_attacker = pPlayerController_attacker->m_hPlayerPawn();
+		if (!pPlayerPawn_attacker || !pPlayerPawn_attacker->IsAlive())
 			return;
 
 		CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
-		int iAntiFlash = g_pVIPCore->VIP_GetClientFeatureInt(pPlayerSlot.Get(), "antiflash");
+		if (!pItemServices)
+			return;
+		int iAntiFlash = g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "antiflash");
 		if(iAntiFlash > 0)
 		{
-			int iATeam = pPlayerController_attacker->m_hPlayerPawn()->m_iTeamNum();
-			int iTTeam = pPlayerController->m_hPlayerPawn()->m_iTeamNum();
+			int iATeam = pPlayerPawn_attacker->m_iTeamNum();
+			int iTTeam = pPlayerPawn->m_iTeamNum();
 			switch (iAntiFlash)
 			{
 				case 1:
@@ -81,10 +87,10 @@ void OnPlayerBlind(const char* szName, IGameEvent* event, bool bDontBroadcast)
 
 CGameEntitySystem* GameEntitySystem()
 {
-    return g_pVIPCore->VIP_GetEntitySystem();
+    return g_pUtils->GetCGameEntitySystem();
 };
 
-void VIP_OnVIPLoaded()
+void OnStartupServer()
 {
 	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
@@ -93,16 +99,6 @@ void VIP_OnVIPLoaded()
 void vip_af::AllPluginsLoaded()
 {
 	int ret;
-	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
-	if (ret == META_IFACE_FAILED)
-	{
-		char error[64];
-		V_strncpy(error, "Failed to lookup vip core. Aborting", 64);
-		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
-		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
-		engine->ServerCommand(sBuffer.c_str());
-		return;
-	}
 	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
 	if (ret == META_IFACE_FAILED)
 	{
@@ -113,8 +109,16 @@ void vip_af::AllPluginsLoaded()
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
+	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
+	if (ret == META_IFACE_FAILED)
+	{
+		g_pUtils->ErrorLog("[%s] Failed to lookup vip core. Aborting", GetLogTag());
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
 	g_pUtils->HookEvent(g_PLID, "player_blind", OnPlayerBlind);
-	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pUtils->StartupServer(g_PLID, OnStartupServer);
 	g_pVIPCore->VIP_RegisterFeature("antiflash", VIP_BOOL, TOGGLABLE);
 }
 
@@ -125,7 +129,7 @@ const char *vip_af::GetLicense()
 
 const char *vip_af::GetVersion()
 {
-	return "1.0";
+	return "1.1";
 }
 
 const char *vip_af::GetDate()

@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include "vip_healthshot.h"
+#include "schemasystem/schemasystem.h"
 
 vip_healthshot g_vip_healthshot;
 
 IVIPApi* g_pVIPCore;
+IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
-CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
@@ -16,7 +17,7 @@ PLUGIN_EXPOSE(vip_healthshot, g_vip_healthshot);
 bool vip_healthshot::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	GET_V_IFACE_ANY(GetEngineFactory, g_pCSchemaSystem, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
 	g_SMAPI->AddListener( this, this );
@@ -44,13 +45,14 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 	{
 		if((iRoundMin == 1 && !g_pVIPCore->VIP_PistolRound()) || (iRoundMin <= g_pVIPCore->VIP_GetTotalRounds() && !g_pVIPCore->VIP_PistolRound()) || (iRoundMin == 0))
 		{
-			CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iSlot + 1));
+			CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
 			if(!pPlayerController) return;
 			CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
-			if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE)
-				return;
+			if (!pPlayerPawn || !pPlayerPawn->IsAlive()) return;
 			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
+			if(!pItemServices) return;
 			CPlayer_WeaponServices* pWeaponServices = pPlayerPawn->m_pWeaponServices();
+			if(!pWeaponServices) return;
 			int iCurrent = pWeaponServices->m_iAmmo()[20];
 			int iCount = g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "healthshot");
 			for(int i = 0; i < iCount - iCurrent; i++){
@@ -63,36 +65,44 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 bool vip_healthshot::Unload(char *error, size_t maxlen)
 {
 	delete g_pVIPCore;
+	delete g_pUtils;
 	return true;
 }
 
 CGameEntitySystem* GameEntitySystem()
 {
-    return g_pVIPCore->VIP_GetEntitySystem();
+    return g_pUtils->GetCGameEntitySystem();
 };
 
-void VIP_OnVIPLoaded()
+void OnStartupServer()
 {
 	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
-	g_pVIPCore->VIP_OnPlayerSpawn(VIP_OnPlayerSpawn);
 }
 
 void vip_healthshot::AllPluginsLoaded()
 {
 	int ret;
-	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
-
+	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
 	if (ret == META_IFACE_FAILED)
 	{
 		char error[64];
-		V_strncpy(error, "Failed to lookup vip core. Aborting", 64);
+		V_strncpy(error, "Failed to lookup utils api. Aborting", 64);
 		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
 		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
-	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
+	if (ret == META_IFACE_FAILED)
+	{
+		g_pUtils->ErrorLog("[%s] Failed to lookup vip core. Aborting", GetLogTag());
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
+	g_pUtils->StartupServer(g_PLID, OnStartupServer);
+	g_pVIPCore->VIP_OnPlayerSpawn(VIP_OnPlayerSpawn);
 	g_pVIPCore->VIP_RegisterFeature("healthshot", VIP_INT, TOGGLABLE);
 }
 

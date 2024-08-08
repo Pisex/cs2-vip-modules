@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "vip_fp.h"
+#include "schemasystem/schemasystem.h"
 
 vip_fp g_vip_fp;
 
@@ -27,24 +28,23 @@ bool vip_fp::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool l
 bool vip_fp::Unload(char *error, size_t maxlen)
 {
 	delete g_pVIPCore;
-	g_pUtils->ClearAllHooks(g_PLID);
 	delete g_pUtils;
 	return true;
 }
 
 void OnBeginPlant(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 {
-	auto iUserID = pEvent->GetInt("userid");
-	bool bValue = g_pVIPCore->VIP_GetClientFeatureBool(iUserID, "fp");
-	if(g_pVIPCore->VIP_IsClientVIP(iUserID) && bValue)
+	int iSlot = pEvent->GetInt("userid");
+	bool bValue = g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "fp");
+	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && bValue)
 	{
-		CCSPlayerController* pPlayerController =  CCSPlayerController::FromSlot(iUserID);
+		CCSPlayerController* pPlayerController =  CCSPlayerController::FromSlot(iSlot);
 		if(!pPlayerController) return;
 		CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
-		if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE) return;
-
+		if (!pPlayerPawn || !pPlayerPawn->IsAlive()) return;
 		CPlayer_WeaponServices* pWeaponServices = pPlayerPawn->m_pWeaponServices();
-		CEntityInstance* hActiveWeapon = (CEntityInstance*)pWeaponServices->m_hActiveWeapon().Get();
+		if(!pWeaponServices) return;
+		CEntityInstance* hActiveWeapon = (CEntityInstance*)pWeaponServices->m_hActiveWeapon();
 		if(hActiveWeapon && strstr(hActiveWeapon->GetClassname(), "c4"))
 		{
 			CC4* cC4 = (CC4*)hActiveWeapon;
@@ -69,24 +69,20 @@ void OnStartupServer()
 void vip_fp::AllPluginsLoaded()
 {
 	int ret;
-	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
-
-	if (ret == META_IFACE_FAILED)
-	{
-		char error[64];
-		V_strncpy(error, "Failed to lookup vip core. Aborting", 64);
-		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
-		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
-		engine->ServerCommand(sBuffer.c_str());
-		return;
-	}
 	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
-
 	if (ret == META_IFACE_FAILED)
 	{
 		char error[64];
 		V_strncpy(error, "Failed to lookup utils api. Aborting", 64);
 		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
+	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
+	if (ret == META_IFACE_FAILED)
+	{
+		g_pUtils->ErrorLog("[%s] Failed to lookup vip core. Aborting", GetLogTag());
 		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
 		engine->ServerCommand(sBuffer.c_str());
 		return;

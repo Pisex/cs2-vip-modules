@@ -3,16 +3,13 @@
 #include <fstream>
 #include "entitykeyvalues.h"
 #include <sstream>
+#include "schemasystem/schemasystem.h"
 
 vip_time g_vip_time;
 
 IUtilsApi* g_pUtils;
 IMenusApi* g_pMenus;
 IVIPApi* g_pVIPCore;
-
-float g_flUniversalTime;
-float g_flLastTickedTime;
-bool g_bHasTicked;
 
 IVEngineServer2* engine = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
@@ -26,8 +23,6 @@ char g_sEndTime[64];
 
 PLUGIN_EXPOSE(vip_time, g_vip_time);
 
-SH_DECL_HOOK3_void(IServerGameDLL, GameFrame, SH_NOATTRIB, 0, bool, bool, bool);
-
 CGameEntitySystem* GameEntitySystem()
 {
 	return g_pUtils->GetCGameEntitySystem();
@@ -36,9 +31,8 @@ CGameEntitySystem* GameEntitySystem()
 void StartupServer()
 {
 	g_bGive = false;
-	g_bHasTicked = false;
 	g_pGameEntitySystem = GameEntitySystem();
-	g_pEntitySystem = g_pUtils->GetCEntitySystem();
+	g_pEntitySystem = g_pGameEntitySystem;
 }
 
 constexpr int HOURS = 0;
@@ -67,8 +61,6 @@ bool vip_time::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool
 	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
 	ConVar_Register(FCVAR_RELEASE | FCVAR_CLIENT_CAN_EXECUTE | FCVAR_GAMEDLL);
 
-	SH_ADD_HOOK(IServerGameDLL, GameFrame, g_pSource2Server, SH_MEMBER(this, &vip_time::GameFrame), true);
-
 	{
 		KeyValues* hKv = new KeyValues("VIP");
 		const char *pszPath = "addons/configs/vip/vip_time.ini";
@@ -84,37 +76,6 @@ bool vip_time::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool
 		g_SMAPI->Format(g_sEndTime, sizeof(g_sEndTime), "%s", hKv->GetString("end_time"));
 		delete hKv;
 	}
-
-	new CTimer(60.0f, [](){
-		char szTime[64];
-		int iCurrentTime[2], iStartTime[2], iEndTime[2];
-		int iMidnight[2] = {24, 0}; // Время полуночи
-		int iStartOfDay[2] = {0, 0}; // Начало дня
-
-		// Получение и преобразование текущего времени
-		FormatTime(szTime, sizeof(szTime), "%H:%M");
-		GetIntDate(szTime, iCurrentTime);
-		GetIntDate(g_sStartTime, iStartTime);
-		GetIntDate(g_sEndTime, iEndTime);
-
-		bool bGive = g_bGive;
-
-		// Проверка временного периода и обновление статуса VIP
-		if(iEndTime[HOURS] < iStartTime[HOURS]) {
-			g_bGive = IsTimeInPeriod(iCurrentTime, iStartTime, iMidnight) ||
-					IsTimeInPeriod(iCurrentTime, iStartOfDay, iEndTime);
-		} else {
-			g_bGive = IsTimeInPeriod(iCurrentTime, iStartTime, iEndTime);
-		}
-
-		// Обновление VIP статуса клиентов
-		if (!g_bGive && bGive) {
-			RemoveVipFromClients();
-		} else if (g_bGive && !bGive) {
-			GiveVipForClients();
-		}
-		return 60.0f;
-	});
 
 	g_SMAPI->AddListener( this, this );
 	return true;
@@ -187,44 +148,7 @@ bool IsTimeInPeriod(const int iTime[2], const int iStartTime[2], const int iEndT
 
 bool vip_time::Unload(char *error, size_t maxlen)
 {
-	SH_REMOVE_HOOK(IServerGameDLL, GameFrame, g_pSource2Server, SH_MEMBER(this, &vip_time::GameFrame), true);
 	return true;
-}
-
-void vip_time::GameFrame(bool simulating, bool bFirstTick, bool bLastTick)
-{
-	if (simulating && g_bHasTicked)
-	{
-		g_flUniversalTime += g_pUtils->GetCGlobalVars()->curtime - g_flLastTickedTime;
-	}
-
-	g_flLastTickedTime = g_pUtils->GetCGlobalVars()->curtime;
-	g_bHasTicked = true;
-
-	for (int i = g_timers.Tail(); i != g_timers.InvalidIndex();)
-	{
-		auto timer = g_timers[i];
-
-		int prevIndex = i;
-		i = g_timers.Previous(i);
-
-		if (timer->m_flLastExecute == -1)
-			timer->m_flLastExecute = g_flUniversalTime;
-
-		// Timer execute 
-		if (timer->m_flLastExecute + timer->m_flInterval <= g_flUniversalTime)
-		{
-			if (!timer->Execute())
-			{
-				delete timer;
-				g_timers.Remove(prevIndex);
-			}
-			else
-			{
-				timer->m_flLastExecute = g_flUniversalTime;
-			}
-		}
-	}
 }
 
 void OnClientLoaded(int iSlot, bool bIsVIP)
@@ -239,16 +163,6 @@ void vip_time::AllPluginsLoaded()
 {
 	char error[64];
 	int ret;
-	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
-	if (ret == META_IFACE_FAILED)
-	{
-		char error[64];
-		V_strncpy(error, "Failed to lookup vip core. Aborting", 64);
-		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
-		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
-		engine->ServerCommand(sBuffer.c_str());
-		return;
-	}
 	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
 	if (ret == META_IFACE_FAILED)
 	{
@@ -258,7 +172,45 @@ void vip_time::AllPluginsLoaded()
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
+	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
+	if (ret == META_IFACE_FAILED)
+	{
+		g_pUtils->ErrorLog("[%s] Failed to lookup vip core. Aborting", GetLogTag());
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
 	g_pUtils->StartupServer(g_PLID, StartupServer);
+	g_pUtils->CreateTimer(60.0f, [](){
+		char szTime[64];
+		int iCurrentTime[2], iStartTime[2], iEndTime[2];
+		int iMidnight[2] = {24, 0}; // Время полуночи
+		int iStartOfDay[2] = {0, 0}; // Начало дня
+
+		// Получение и преобразование текущего времени
+		FormatTime(szTime, sizeof(szTime), "%H:%M");
+		GetIntDate(szTime, iCurrentTime);
+		GetIntDate(g_sStartTime, iStartTime);
+		GetIntDate(g_sEndTime, iEndTime);
+
+		bool bGive = g_bGive;
+
+		// Проверка временного периода и обновление статуса VIP
+		if(iEndTime[HOURS] < iStartTime[HOURS]) {
+			g_bGive = IsTimeInPeriod(iCurrentTime, iStartTime, iMidnight) ||
+					IsTimeInPeriod(iCurrentTime, iStartOfDay, iEndTime);
+		} else {
+			g_bGive = IsTimeInPeriod(iCurrentTime, iStartTime, iEndTime);
+		}
+
+		// Обновление VIP статуса клиентов
+		if (!g_bGive && bGive) {
+			RemoveVipFromClients();
+		} else if (g_bGive && !bGive) {
+			GiveVipForClients();
+		}
+		return 60.0f;
+	});
 	g_pVIPCore->VIP_OnClientLoaded(OnClientLoaded);
 }
 

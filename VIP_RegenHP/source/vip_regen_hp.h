@@ -9,13 +9,9 @@
 #include <sh_vector.h>
 #include <entity2/entitysystem.h>
 #include "inetchannelinfo.h"
-#include "utils.hpp"
-#include "module.h"
 #include "CCSPlayerController.h"
-#include "CGameRules.h"
 #include "iserver.h"
 #include "include/menus.h"
-#include "ctimer.h"
 #include "include/vip.h"
 #include <ctime>
 
@@ -25,7 +21,6 @@ public:
 	bool Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late);
 	bool Unload(char *error, size_t maxlen);
 	void AllPluginsLoaded();
-	void GameFrame(bool simulating, bool bFirstTick, bool bLastTick);
 public:
 	const char *GetAuthor();
 	const char *GetName();

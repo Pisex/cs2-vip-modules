@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include "vip_items.h"
+#include "schemasystem/schemasystem.h"
 
 vip_items g_vip_items;
 
 IVIPApi* g_pVIPCore;
+IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
@@ -45,18 +47,20 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 		{
 			if(g_pVIPCore->VIP_GetClientFeatureString(iSlot, "items")[0])
 			{
-				CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iSlot + 1));
+				CCSPlayerController* pPlayerController =  CCSPlayerController::FromSlot(iSlot);
 				if(!pPlayerController) return;
 				CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
-				if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE)
-					return;
+				if (!pPlayerPawn || !pPlayerPawn->IsAlive()) return;
 				CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
-				CUtlVector<char*> m_items;
+				if(!pItemServices) return;
 				CPlayer_WeaponServices* pWeaponServices = pPlayerPawn->m_pWeaponServices();
+				if(!pWeaponServices) return;
+				CUtlVector<char*> m_items;
 				std::vector<std::string> hWeapons;
-				for (size_t i = 0; i < pWeaponServices->m_hMyWeapons().Count(); i++)
+				CUtlVector<CHandle<CBasePlayerWeapon>>* weapons = pWeaponServices->m_hMyWeapons();
+				FOR_EACH_VEC(*weapons, i)
 				{
-					CEntityInstance* hActiveWeapon = (CEntityInstance*)pWeaponServices->m_hMyWeapons()[i].Get();
+					CEntityInstance* hActiveWeapon = (CEntityInstance*)(*weapons)[i].Get();
 					if(!hActiveWeapon) continue;
 					hWeapons.push_back(std::string(hActiveWeapon->GetClassname()));
 				}
@@ -96,36 +100,44 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 bool vip_items::Unload(char *error, size_t maxlen)
 {
 	delete g_pVIPCore;
+	delete g_pUtils;
 	return true;
 }
 
 CGameEntitySystem* GameEntitySystem()
 {
-    return g_pVIPCore->VIP_GetEntitySystem();
-};
+    return g_pUtils->GetCGameEntitySystem();
+}
 
-void VIP_OnVIPLoaded()
+void OnStartupServer()
 {
 	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
-	g_pVIPCore->VIP_OnPlayerSpawn(VIP_OnPlayerSpawn);
 }
 
 void vip_items::AllPluginsLoaded()
 {
 	int ret;
-	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
-
+	g_pUtils = (IUtilsApi*)g_SMAPI->MetaFactory(Utils_INTERFACE, &ret, NULL);
 	if (ret == META_IFACE_FAILED)
 	{
 		char error[64];
-		V_strncpy(error, "Failed to lookup vip core. Aborting", 64);
+		V_strncpy(error, "Failed to lookup utils api. Aborting", 64);
 		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
 		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
-	g_pVIPCore->VIP_OnVIPLoaded(VIP_OnVIPLoaded);
+	g_pVIPCore = (IVIPApi*)g_SMAPI->MetaFactory(VIP_INTERFACE, &ret, NULL);
+	if (ret == META_IFACE_FAILED)
+	{
+		g_pUtils->ErrorLog("[%s] Failed to lookup vip core. Aborting", GetLogTag());
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
+	g_pUtils->StartupServer(g_PLID, OnStartupServer);
+	g_pVIPCore->VIP_OnPlayerSpawn(VIP_OnPlayerSpawn);
 	g_pVIPCore->VIP_RegisterFeature("items", VIP_BOOL, TOGGLABLE);
 }
 
