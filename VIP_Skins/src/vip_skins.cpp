@@ -86,14 +86,21 @@ void OnPlayerSpawn(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 		return;
 	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && !g_PlayerSkin[iSlot].empty())
 	{
+		std::string sSkins = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "Skins");
+		if(sSkins.find(g_PlayerSkin[iSlot]) == std::string::npos)
+		{
+			g_PlayerSkin[iSlot] = "";
+			return;
+		}
 		g_pUtils->CreateTimer(g_fTime, [iSlot]() {
 			auto pController = CCSPlayerController::FromSlot(iSlot);
 			if (!pController) return -1.0f;
-			if(pController->m_iTeamNum() < 2 || !pController->IsAlive()) return -1.0f;
-			if(!pController->m_hPawn()) return -1.0f;
-			g_DefaultSkin[iSlot] = pController->m_hPawn()->GetModelName().String();
+			CCSPlayerPawn* pPawn = pController->GetPlayerPawn();
+			if(!pPawn) return -1.0f;
+			if(pPawn->m_iTeamNum() < 2 || !pPawn->IsAlive()) return -1.0f;
+			g_DefaultSkin[iSlot] = pPawn->GetModelName().String();
 			if(g_SkinsList[g_PlayerSkin[iSlot]].sModel.size())
-				g_pUtils->SetEntityModel(pController->m_hPawn(), g_SkinsList[g_PlayerSkin[iSlot]].sModel.c_str());
+				g_pUtils->SetEntityModel(pPawn, g_SkinsList[g_PlayerSkin[iSlot]].sModel.c_str());
 			return -1.0f;
 		});
 	}
@@ -102,26 +109,25 @@ void SkinsMenuHandle(const char* szBack, const char* szFront, int iItem, int iSl
 {
 	if(iItem < 7)
 	{
-		auto pController = CCSPlayerController::FromSlot(iSlot);
-		if (!pController)
-			return;
-		uint64_t m_steamID = pController->m_steamID();
-		if(m_steamID == 0 || !pController->m_hPawn())
-			return;
-		
-		if(pController->m_iTeamNum() < 2 || !pController->IsAlive())
-			return;
-		
 		g_PlayerSkin[iSlot] = szBack;
+		CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
+		if(!pPlayerController) return;
+		CCSPlayerPawnBase* pPlayerPawn = pPlayerController->GetPlayerPawn();
+		if(!pPlayerPawn) return;
+		int iTeam = pPlayerPawn->m_iTeamNum() - 2;
+		if(iTeam < 0 || iTeam > 1) return;
+		if(!pPlayerPawn->IsAlive()) return;
 		g_pVIPCore->VIP_SetClientCookie(iSlot, "skin", szBack);
-		if(!szBack[0])
+		if(szBack[0] == '\0')
+		{
 			if(g_DefaultSkin[iSlot].size())
-				g_pUtils->SetEntityModel(pController->m_hPawn(), g_DefaultSkin[iSlot].c_str());
+				g_pUtils->SetEntityModel(pPlayerPawn, g_DefaultSkin[iSlot].c_str());
+		}
 		else
 		{
-			g_DefaultSkin[iSlot] = pController->m_hPawn()->GetModelName().String();
-			if(g_SkinsList[szBack].sModel.size())
-				g_pUtils->SetEntityModel(pController->m_hPawn(), g_SkinsList[szBack].sModel.c_str());
+			g_DefaultSkin[iSlot] = pPlayerPawn->GetModelName().String();
+			if(g_SkinsList[g_PlayerSkin[iSlot]].sModel.size())
+				g_pUtils->SetEntityModel(pPlayerPawn, g_SkinsList[g_PlayerSkin[iSlot]].sModel.c_str());
 		}
 	}
 }
@@ -152,7 +158,8 @@ void OnClientLoaded(int iSlot, bool bIsVIP)
 	if(bIsVIP)
 	{
 		std::string skin = g_pVIPCore->VIP_GetClientCookie(iSlot, "skin");
-		if(g_SkinsList.find(skin) != g_SkinsList.end())
+		std::string sSkins = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "Skins");
+		if(g_SkinsList.find(skin) != g_SkinsList.end() && sSkins.find(skin) != std::string::npos)
 			g_PlayerSkin[iSlot] = skin;
 	}
 }
