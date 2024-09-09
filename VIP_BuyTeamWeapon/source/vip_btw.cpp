@@ -7,6 +7,8 @@ vip_btw g_vip_btw;
 IVIPApi* g_pVIPCore;
 IUtilsApi* g_pUtils;
 
+CCSGameRules* g_pGameRules = nullptr;
+
 IVEngineServer2* engine = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
@@ -54,19 +56,23 @@ bool VIP_AK47Command(int iSlot, const char* szContent)
 	{
 		CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
 		if(!pPlayerController) return false;
-		CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
+		CCSPlayerPawn* pPlayerPawn = pPlayerController->m_hPlayerPawn();
 		if (!pPlayerPawn || !pPlayerPawn->IsAlive()) return false;
-		CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
-		if(!pMoneyServices) return false;
-		if(pMoneyServices->m_iAccount() >= 2700)
+		if(pPlayerPawn->m_bInBuyZone())
 		{
-			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
-			if(!pItemServices) return false;
-			pMoneyServices->m_iAccount() -=2700; 
-			pItemServices->GiveNamedItem("weapon_ak47");
-			g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
+			CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
+			if(!pMoneyServices) return false;
+			if(pMoneyServices->m_iAccount() >= 2700)
+			{
+				CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
+				if(!pItemServices) return false;
+				pMoneyServices->m_iAccount() -=2700; 
+				pItemServices->GiveNamedItem("weapon_ak47");
+				g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
+			}
+			else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
 		}
-		else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
+		else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_buyzone"));
 	}
 	else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("NotAccess"));
 	return false;
@@ -78,19 +84,23 @@ bool VIP_M4A1Command(int iSlot, const char* szContent)
 	{
 		CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
 		if(!pPlayerController) return false;
-		CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
+		CCSPlayerPawn* pPlayerPawn = pPlayerController->m_hPlayerPawn();
 		if (!pPlayerPawn || !pPlayerPawn->IsAlive()) return false;
-		CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
-		if(!pMoneyServices) return false;
-		if(pMoneyServices->m_iAccount() >= 2900)
+		if(pPlayerPawn->m_bInBuyZone())
 		{
-			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
-			if(!pItemServices) return false;
-			pMoneyServices->m_iAccount() -=2900; 
-			pItemServices->GiveNamedItem("weapon_m4a1_silencer");
-			g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
+			CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
+			if(!pMoneyServices) return false;
+			if(pMoneyServices->m_iAccount() >= 2900)
+			{
+				CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
+				if(!pItemServices) return false;
+				pMoneyServices->m_iAccount() -=2900; 
+				pItemServices->GiveNamedItem("weapon_m4a1_silencer");
+				g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
+			}
+			else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
 		}
-		else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
+		else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_buyzone"));
 	}
 	else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("NotAccess"));
 	return false;
@@ -102,19 +112,23 @@ bool VIP_M4A4Command(int iSlot, const char* szContent)
 	{
 		CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
 		if(!pPlayerController) return false;
-		CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
+		CCSPlayerPawn* pPlayerPawn = pPlayerController->m_hPlayerPawn();
 		if (!pPlayerPawn || !pPlayerPawn->IsAlive()) return false;
-		CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
-		if(!pMoneyServices) return false;
-		if(pMoneyServices->m_iAccount() >= 3100)
+		if(pPlayerPawn->m_bInBuyZone())
 		{
-			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
-			if(!pItemServices) return false;
-			pMoneyServices->m_iAccount() -=3100; 
-			pItemServices->GiveNamedItem("weapon_m4a1");
-			g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
+			CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
+			if(!pMoneyServices) return false;
+			if(pMoneyServices->m_iAccount() >= 3100)
+			{
+				CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
+				if(!pItemServices) return false;
+				pMoneyServices->m_iAccount() -=3100; 
+				pItemServices->GiveNamedItem("weapon_m4a1");
+				g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
+			}
+			else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
 		}
-		else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
+		else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_buyzone"));
 	}
 	else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("NotAccess"));
 	return false;
@@ -129,6 +143,11 @@ void OnStartupServer()
 {
 	g_pGameEntitySystem = GameEntitySystem();
 	g_pEntitySystem = g_pGameEntitySystem;
+}
+
+void GetGameRules()
+{
+	g_pGameRules = g_pUtils->GetCCSGameRules();
 }
 
 void vip_btw::AllPluginsLoaded()
@@ -153,6 +172,7 @@ void vip_btw::AllPluginsLoaded()
 		return;
 	}
 	g_pUtils->StartupServer(g_PLID, OnStartupServer);
+	g_pUtils->OnGetGameRules(g_PLID, GetGameRules);
 	g_pUtils->HookEvent(g_PLID, "round_start", OnRoundStart);
 	g_pUtils->RegCommand(g_PLID, {"sm_ak47", "mm_ak47"}, {"!ak47", "ak47"}, VIP_AK47Command);
 	g_pUtils->RegCommand(g_PLID, {"sm_m4a1", "mm_m4a1"}, {"!m4a1", "m4a1"}, VIP_M4A1Command);

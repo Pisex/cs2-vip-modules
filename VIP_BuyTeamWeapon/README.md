@@ -25,4 +25,9 @@ In **vip.phrases.txt** add:
 		"en"	"Not enough money to buy a gun"
 		"ru"	"Недостаточно денег для покупки оружия"
 	}
+	"btw_no_buyzone"
+	{
+		"en"	"You can't buy a gun when you're not in the purchasing area"
+		"ru"	"Вы не можете купить оружие, если вы не находитесь в зоне покупки"
+	}
 ```
