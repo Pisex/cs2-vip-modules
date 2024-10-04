@@ -5,6 +5,7 @@ vip_respawn g_vip_respawn;
 
 IVIPApi* g_pVIPCore;
 IUtilsApi* g_pUtils;
+IPlayersApi* g_pPlayers;
 
 IVEngineServer2* engine = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
@@ -56,7 +57,7 @@ bool OnRespawnCommand(int iSlot, const char* szContent)
 					if (pawn)
 						UTIL_RespawnPlayer(pPlayerController, pawn, true, false);
 				}
-				pPlayerController->Respawn();
+				g_pPlayers->Respawn(iSlot);
 			}
 			else g_pUtils->PrintToChat(iSlot, g_pVIPCore->VIP_GetTranslate("LimitRespawn"));
 		}
@@ -92,7 +93,6 @@ bool vip_respawn::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, b
 bool vip_respawn::Unload(char *error, size_t maxlen)
 {
 	delete g_pVIPCore;
-	g_pUtils->ClearAllHooks(g_PLID);
 	delete g_pUtils;
 	return true;
 }
@@ -150,6 +150,17 @@ void vip_respawn::AllPluginsLoaded()
 	{
 		char error[64];
 		V_strncpy(error, "Failed to lookup utils api. Aborting", 64);
+		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
+		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
+		engine->ServerCommand(sBuffer.c_str());
+		return;
+	}
+	g_pPlayers = (IPlayersApi*)g_SMAPI->MetaFactory(PLAYERS_INTERFACE, &ret, NULL);
+
+	if (ret == META_IFACE_FAILED)
+	{
+		char error[64];
+		V_strncpy(error, "Failed to lookup players api. Aborting", 64);
 		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
 		std::string sBuffer = "meta unload "+std::to_string(g_PLID);
 		engine->ServerCommand(sBuffer.c_str());
