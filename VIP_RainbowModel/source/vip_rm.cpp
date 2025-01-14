@@ -134,6 +134,7 @@ void vip_rm::GameFrame(bool simulating, bool bFirstTick, bool bLastTick)
 				if (!pPlayerPawn || !pPlayerPawn->IsAlive()) continue;
 				if(!g_pVIPCore->VIP_GetClientFeatureBool(i, "rainbow_model")) continue;
 				pPlayerPawn->m_clrRender().SetColor(g_iGradient[RED], g_iGradient[GREEN], g_iGradient[BLUE], 255);
+        		g_pUtils->SetStateChanged(pPlayerPawn, "CBaseModelEntity", "m_clrRender");
 			}
 		}
 	}
