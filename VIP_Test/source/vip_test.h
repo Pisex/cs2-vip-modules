@@ -7,18 +7,10 @@
 #include "utlvector.h"
 #include "ehandle.h"
 #include <sh_vector.h>
-#include <entity2/entitysystem.h>
-#include "sdk/utils.hpp"
-#include "sdk/module.h"
-#include "sdk/schemasystem.h"
-#include "sdk/CBaseEntity.h"
-#include "sdk/CBasePlayerPawn.h"
-#include "sdk/CCSPlayerController.h"
-#include "sdk/CCSPlayer_ItemServices.h"
-#include "sdk/CGameRules.h"
 #include "iserver.h"
-#include "include/vip.h"
+class CCSGameRules;
 #include "include/menus.h"
+#include "include/vip.h"
 #include <string>
 #include <ctime>
 

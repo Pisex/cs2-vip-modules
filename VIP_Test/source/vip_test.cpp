@@ -7,7 +7,6 @@ IVIPApi* g_pVIPCore;
 IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
-CSchemaSystem* g_pCSchemaSystem = nullptr;
 
 char szGroup[128];
 int iTime;
@@ -22,8 +21,8 @@ bool OnVIPTestCommand(int iSlot, const char* szContent)
 		const char* szValue = g_pVIPCore->VIP_GetClientCookie(iSlot, "vip_test");
 		if(!strlen(szValue) || ((std::stoi(szValue) < std::time(0)) && iTimeout != 0))
 		{
-			g_pVIPCore->VIP_GiveClientVIP(iSlot, iTime, szGroup);
 			g_pVIPCore->VIP_SetClientCookie(iSlot, "vip_test", std::to_string(std::time(0)+iTime+iTimeout).c_str());
+			g_pVIPCore->VIP_GiveClientVIP(iSlot, iTime, szGroup);
 		}
 		else
 		{
@@ -40,7 +39,6 @@ bool OnVIPTestCommand(int iSlot, const char* szContent)
 bool vip_test::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	GET_V_IFACE_ANY(GetEngineFactory, g_pCSchemaSystem, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
 	g_SMAPI->AddListener( this, this );

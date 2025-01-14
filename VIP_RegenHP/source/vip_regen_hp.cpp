@@ -17,6 +17,7 @@ CEntitySystem* g_pEntitySystem = nullptr;
 PLUGIN_EXPOSE(vip_regen_hp, g_vip_regen_hp);
 
 bool g_bRegen[64];
+CTimer* g_pTimer[64];
 
 CGameEntitySystem* GameEntitySystem()
 {
@@ -34,22 +35,25 @@ bool RegenHP(int iSlot)
 	auto pController = CCSPlayerController::FromSlot(iSlot);
 	if (!pController)
 		return false;
-	if(pController->m_iTeamNum() > 2 && pController->IsAlive())
+	CCSPlayerPawn* pPawn = pController->GetPlayerPawn();
+	if(pPawn->m_iTeamNum() >= 2 && pPawn->IsAlive())
 	{
-		int iMaxHP = pController->GetPlayerPawn()->m_iMaxHealth();
-		int iHP = pController->GetPlayerPawn()->m_iHealth();
+		int iMaxHP = pPawn->m_iMaxHealth();
+		int iHP = pPawn->m_iHealth();
 		if(iHP < iMaxHP)
 		{
 			iHP += g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenHP");
-			if(iHP < iMaxHP)
+			if(iHP > iMaxHP)
 			{
-				pController->GetPlayerPawn()->m_iHealth(iHP);
-				return true;
+				pPawn->m_iHealth(iMaxHP);
+				return false;
 			}
-			pController->GetPlayerPawn()->m_iHealth(iMaxHP);
+			pPawn->m_iHealth(iHP);
+			return true;
+		} else {
+			return false;
 		}
 	}
-	g_bRegen[iSlot] = false;
 	return false;
 }
 
@@ -73,34 +77,44 @@ bool vip_regen_hp::Unload(char *error, size_t maxlen)
 	return true;
 }
 
+void CreateRegenTimer(int iSlot)
+{
+	g_pTimer[iSlot] = g_pUtils->CreateTimer(g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "DelayRegenHP"), [iSlot](){
+		g_bRegen[iSlot] = RegenHP(iSlot);
+		if(g_bRegen[iSlot]) {
+			return g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "IntervalRegenHP");
+		}
+		g_pTimer[iSlot] = nullptr;
+		return -1.0f;
+	});
+}
+
 void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 {
 	int iSlot = pEvent->GetInt("userid");
-	if(iSlot < 0 || iSlot > 64)
+	if(iSlot < 0 || iSlot >= 64)
 		return;
-	if(g_pVIPCore->VIP_IsClientVIP(iSlot))
+	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && pEvent->GetInt("dmg_health") && pEvent->GetInt("health"))
 	{
 		auto pController = CCSPlayerController::FromSlot(iSlot);
 		if (!pController)
 			return;
-		if(pController->m_iTeamNum() < 2 || !pController->IsAlive())
+		
+		CCSPlayerPawn* pPawn = pController->GetPlayerPawn();
+		if(pPawn->m_iTeamNum() < 2 || !pPawn->IsAlive())
 			return;
 		
-		if( g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenHP") == 0 || pEvent->GetInt("health") == 0)
+		if( g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenHP") == 0)
 			return;
-		if(g_bRegen[iSlot]) return;
-		g_pUtils->CreateTimer(g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "DelayRegenHP"), [iSlot](){
-			if(!g_bRegen[iSlot]) return -1.0f; 
-			if(RegenHP(iSlot))
-				return g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "IntervalRegenHP");
-			g_pUtils->CreateTimer(g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "IntervalRegenHP"), [iSlot](){
-				if(!g_bRegen[iSlot]) return -1.0f; 
-				if(RegenHP(iSlot))
-					return g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "IntervalRegenHP");
-				return -1.0f;
-			});
-			return -1.0f;
-		});
+		if(g_bRegen[iSlot]) {
+			if(g_pTimer[iSlot] != nullptr) {
+				g_pUtils->RemoveTimer(g_pTimer[iSlot]);
+				g_pTimer[iSlot] = nullptr;
+			}
+		}
+		g_bRegen[iSlot] = true;
+		
+		CreateRegenTimer(iSlot);
 	}
 }
 
@@ -130,12 +144,10 @@ std::string OnDisplay(int iSlot, const char* szFeature)
 
 bool OnToggle(int iSlot, const char* szFeature, VIP_ToggleState eOldStatus, VIP_ToggleState& eNewStatus)
 {
-	if(eNewStatus == DISABLED)
-	{
+	if(eNewStatus == DISABLED) {
 		g_bRegen[iSlot] = false;
 	}
 	return true;
-
 }
 
 void vip_regen_hp::AllPluginsLoaded()

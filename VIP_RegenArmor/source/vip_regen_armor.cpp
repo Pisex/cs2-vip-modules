@@ -18,6 +18,7 @@ CEntitySystem* g_pEntitySystem = nullptr;
 PLUGIN_EXPOSE(vip_regen_armor, g_vip_regen_armor);
 
 bool g_bRegen[64];
+CTimer* g_pTimer[64];
 
 CGameEntitySystem* GameEntitySystem()
 {
@@ -35,10 +36,11 @@ bool RegenArmor(int iSlot)
 	auto pController = CCSPlayerController::FromSlot(iSlot);
 	if (!pController)
 		return false;
-	if(pController->m_iTeamNum() < 2 || !pController->IsAlive())
+	CCSPlayerPawn* pPawn = pController->GetPlayerPawn();
+	if(pPawn->m_iTeamNum() < 2 || !pPawn->IsAlive())
 		return false;
 
-	int iArmor = pController->GetPlayerPawn()->m_ArmorValue();
+	int iArmor = pPawn->m_ArmorValue();
 	const char* sArmor = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "armor");
 	int iMaxArmor = 100;
 	if(sArmor[0])
@@ -54,19 +56,19 @@ bool RegenArmor(int iSlot)
 			else iMaxArmor = std::stoi(sArmor);
 		}
 	}
+
 	if(iArmor < iMaxArmor)
 	{
 		int iNewArmor = iArmor + g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenArmor");
-		if(iNewArmor < iMaxArmor)
+		if(iNewArmor > iMaxArmor)
 		{
-			pController->GetPlayerPawn()->m_ArmorValue(iNewArmor);
-			return true;
+			pPawn->m_ArmorValue(iMaxArmor);
+			return false;
 		}
 
-		pController->GetPlayerPawn()->m_ArmorValue(iMaxArmor);
+		pPawn->m_ArmorValue(iNewArmor);
+		return true;
 	}
-
-	g_bRegen[iSlot] = false;
 
 	return false;
 }
@@ -91,30 +93,43 @@ bool vip_regen_armor::Unload(char *error, size_t maxlen)
 	return true;
 }
 
+void CreateRegenTimer(int iSlot)
+{
+	g_pUtils->CreateTimer(g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "DelayRegenArmor"), [iSlot](){
+		g_bRegen[iSlot] = RegenArmor(iSlot); 
+		if(RegenArmor(iSlot)) {
+			return g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "IntervalRegenArmor");
+		}
+		return -1.0f;
+	});
+}
+
 void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 {
 	int iSlot = pEvent->GetInt("userid");
 	if(iSlot < 0 || iSlot > 64)
 		return;
-	if(g_pVIPCore->VIP_IsClientVIP(iSlot))
+	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && pEvent->GetInt("dmg_armor"))
 	{
 		auto pController = CCSPlayerController::FromSlot(iSlot);
-		if (!pController) return;
-		if(pController->m_iTeamNum() < 2 || !pController->IsAlive()) return;
-		if( g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenArmor") == 0 || pEvent->GetInt("dmg_armor") == 0) return;
-		if(g_bRegen[iSlot]) return;
-		g_pUtils->CreateTimer(g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "DelayRegenArmor"), [iSlot](){
-			if(!g_bRegen[iSlot]) return -1.0f; 
-			if(RegenArmor(iSlot))
-				return g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "IntervalRegenArmor");
-			g_pUtils->CreateTimer(g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "IntervalRegenArmor"), [iSlot](){
-				if(!g_bRegen[iSlot]) return -1.0f; 
-				if(RegenArmor(iSlot))
-					return g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "IntervalRegenArmor");
-				return -1.0f;
-			});
-			return -1.0f;
-		});
+		if (!pController)
+			return;
+		
+		CCSPlayerPawn* pPawn = pController->GetPlayerPawn();
+		if(pPawn->m_iTeamNum() < 2 || !pPawn->IsAlive())
+			return;
+
+		if( g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenArmor") == 0) 
+			return;
+
+		if(g_bRegen[iSlot]) {
+			if(g_pTimer[iSlot] != nullptr) {
+				g_pUtils->RemoveTimer(g_pTimer[iSlot]);
+				g_pTimer[iSlot] = nullptr;
+			}
+		}
+		g_bRegen[iSlot] = true;
+		CreateRegenTimer(iSlot);
 	}
 }
 
