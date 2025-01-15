@@ -104,8 +104,9 @@ void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 		if(pPawn->m_iTeamNum() < 2 || !pPawn->IsAlive())
 			return;
 		
-		if( g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenHP") == 0)
+		if(!g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenHP"))
 			return;
+			
 		if(g_bRegen[iSlot]) {
 			if(g_pTimer[iSlot] != nullptr) {
 				g_pUtils->RemoveTimer(g_pTimer[iSlot]);

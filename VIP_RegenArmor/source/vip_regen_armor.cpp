@@ -119,7 +119,7 @@ void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 		if(pPawn->m_iTeamNum() < 2 || !pPawn->IsAlive())
 			return;
 
-		if( g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenArmor") == 0) 
+		if(!g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenArmor")) 
 			return;
 
 		if(g_bRegen[iSlot]) {
