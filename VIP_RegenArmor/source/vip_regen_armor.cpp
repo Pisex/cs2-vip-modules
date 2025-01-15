@@ -95,11 +95,12 @@ bool vip_regen_armor::Unload(char *error, size_t maxlen)
 
 void CreateRegenTimer(int iSlot)
 {
-	g_pUtils->CreateTimer(g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "DelayRegenArmor"), [iSlot](){
-		g_bRegen[iSlot] = RegenArmor(iSlot); 
-		if(RegenArmor(iSlot)) {
+	g_pTimer[iSlot] = g_pUtils->CreateTimer(g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "DelayRegenArmor"), [iSlot](){
+		g_bRegen[iSlot] = RegenArmor(iSlot);
+		if(g_bRegen[iSlot]) {
 			return g_pVIPCore->VIP_GetClientFeatureFloat(iSlot, "IntervalRegenArmor");
 		}
+		g_pTimer[iSlot] = nullptr;
 		return -1.0f;
 	});
 }
@@ -119,7 +120,7 @@ void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 		if(pPawn->m_iTeamNum() < 2 || !pPawn->IsAlive())
 			return;
 
-		if(!g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenArmor")) 
+		if(g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenArmor") == -1)
 			return;
 
 		if(g_bRegen[iSlot]) {

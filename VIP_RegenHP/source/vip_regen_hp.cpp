@@ -104,7 +104,7 @@ void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 		if(pPawn->m_iTeamNum() < 2 || !pPawn->IsAlive())
 			return;
 		
-		if(!g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenHP"))
+		if(g_pVIPCore->VIP_GetClientFeatureInt(iSlot, "RegenHP") == -1)
 			return;
 			
 		if(g_bRegen[iSlot]) {
@@ -114,7 +114,6 @@ void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 			}
 		}
 		g_bRegen[iSlot] = true;
-		
 		CreateRegenTimer(iSlot);
 	}
 }
