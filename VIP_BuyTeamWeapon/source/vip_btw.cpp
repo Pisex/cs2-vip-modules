@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "vip_btw.h"
 #include "schemasystem/schemasystem.h"
+#include <sstream>
 
 vip_btw g_vip_btw;
 
@@ -13,13 +14,23 @@ IVEngineServer2* engine = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
+struct WeaponData
+{
+	const char* szName;
+	int iPrice;
+};
+
+std::map<std::string, WeaponData> g_WeaponData[2];
+
 PLUGIN_EXPOSE(vip_btw, g_vip_btw);
 bool vip_btw::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
 	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
+	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
 	g_SMAPI->AddListener( this, this );
+
 	return true;
 }
 
@@ -32,105 +43,71 @@ bool vip_btw::Unload(char *error, size_t maxlen)
 
 void OnRoundStart(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 {
-	for (int i = 0; i < 64; i++)
-	{
-		if(g_pVIPCore->VIP_IsClientVIP(i) && g_pVIPCore->VIP_GetClientFeatureBool(i, "btw"))
-		{
-			CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(i);
-			if(!pPlayerController) return;
-			CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
-			if (pPlayerPawn && pPlayerPawn->IsAlive())
+    for (int i = 0; i < 64; i++)
+    {
+        if(g_pVIPCore->VIP_IsClientVIP(i) && g_pVIPCore->VIP_GetClientFeatureBool(i, "btw"))
+        {
+            CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(i);
+            if(!pPlayerController) return;
+            CCSPlayerPawnBase* pPlayerPawn = pPlayerController->m_hPlayerPawn();
+            if (!pPlayerPawn || !pPlayerPawn->IsAlive()) return;
+			int teamIndex = pPlayerPawn->m_iTeamNum() - 2;
+			if (teamIndex < 0 || teamIndex >= 2) return;
+
+			std::string szWeapons;
+			char szBuffer[64];
+			for (const auto& pair : g_WeaponData[teamIndex])
 			{
-				if(pPlayerPawn->m_iTeamNum() == 3)
-					g_pUtils->PrintToChat(i, "%s", g_pVIPCore->VIP_GetTranslate("btw_round_start1"));
-				else if(pPlayerPawn->m_iTeamNum() == 2)
-					g_pUtils->PrintToChat(i, "%s", g_pVIPCore->VIP_GetTranslate("btw_round_start2"));
+				if (!szWeapons.empty())
+				{
+					g_SMAPI->Format(szBuffer, sizeof(szBuffer), ", %s", pair.first.c_str());
+					szWeapons += szBuffer;
+				}
+				else
+				{
+					szWeapons = pair.first.c_str();
+				}
 			}
-		}
-	}
+			g_pUtils->PrintToChat(i, g_pVIPCore->VIP_GetTranslate("btw_round_start"), szWeapons.c_str());
+        }
+    }
 }
 
-bool VIP_AK47Command(int iSlot, const char* szContent)
+bool VIP_BuyWeapon(int iSlot, const char* szContent)
 {
-	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "btw"))
+	CCommand arg;
+	arg.Tokenize(szContent);
+	if(arg.ArgC() < 1) return false;
+	std::string sCommand = arg.Arg(0);
+	if(g_WeaponData[0].find(sCommand) == g_WeaponData[0].end() && g_WeaponData[1].find(sCommand) == g_WeaponData[1].end()) return false;
+	if(!g_pVIPCore->VIP_IsClientVIP(iSlot) || !g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "btw")) return false;
+	CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
+	if(!pPlayerController) return false;
+	CCSPlayerPawn* pPlayerPawn = pPlayerController->GetPlayerPawn();
+	if(!pPlayerPawn || !pPlayerPawn->IsAlive()) return false;
+	int iTeam = pPlayerPawn->m_iTeamNum();
+	int iTeamNum = iTeam == 3 ? 1 : 0;
+	if(g_WeaponData[iTeamNum].find(sCommand) == g_WeaponData[iTeamNum].end()) return false;
+	if(!pPlayerPawn->m_bInBuyZone())
 	{
-		CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
-		if(!pPlayerController) return false;
-		CCSPlayerPawn* pPlayerPawn = pPlayerController->m_hPlayerPawn();
-		if (!pPlayerPawn || !pPlayerPawn->IsAlive()) return false;
-		if(pPlayerPawn->m_bInBuyZone())
-		{
-			CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
-			if(!pMoneyServices) return false;
-			if(pMoneyServices->m_iAccount() >= 2700)
-			{
-				CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
-				if(!pItemServices) return false;
-				pMoneyServices->m_iAccount() -=2700; 
-				pItemServices->GiveNamedItem("weapon_ak47");
-				g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
-			}
-			else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
-		}
-		else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_buyzone"));
+		g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_buyzone"));
+		return false;
 	}
-	else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("NotAccess"));
-	return false;
-}
+	CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
+	if(!pItemServices) return false;
+	CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
+	if(!pMoneyServices) return false;
 
-bool VIP_M4A1Command(int iSlot, const char* szContent)
-{
-	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "btw"))
+	WeaponData wData = g_WeaponData[iTeamNum][sCommand];
+	if(pMoneyServices->m_iAccount() < wData.iPrice)
 	{
-		CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
-		if(!pPlayerController) return false;
-		CCSPlayerPawn* pPlayerPawn = pPlayerController->m_hPlayerPawn();
-		if (!pPlayerPawn || !pPlayerPawn->IsAlive()) return false;
-		if(pPlayerPawn->m_bInBuyZone())
-		{
-			CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
-			if(!pMoneyServices) return false;
-			if(pMoneyServices->m_iAccount() >= 2900)
-			{
-				CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
-				if(!pItemServices) return false;
-				pMoneyServices->m_iAccount() -=2900; 
-				pItemServices->GiveNamedItem("weapon_m4a1_silencer");
-				g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
-			}
-			else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
-		}
-		else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_buyzone"));
+		g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
+		return false;
 	}
-	else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("NotAccess"));
-	return false;
-}
-
-bool VIP_M4A4Command(int iSlot, const char* szContent)
-{
-	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "btw"))
-	{
-		CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
-		if(!pPlayerController) return false;
-		CCSPlayerPawn* pPlayerPawn = pPlayerController->m_hPlayerPawn();
-		if (!pPlayerPawn || !pPlayerPawn->IsAlive()) return false;
-		if(pPlayerPawn->m_bInBuyZone())
-		{
-			CCSPlayerController_InGameMoneyServices* pMoneyServices = pPlayerController->m_pInGameMoneyServices();
-			if(!pMoneyServices) return false;
-			if(pMoneyServices->m_iAccount() >= 3100)
-			{
-				CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
-				if(!pItemServices) return false;
-				pMoneyServices->m_iAccount() -=3100; 
-				pItemServices->GiveNamedItem("weapon_m4a1");
-				g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
-			}
-			else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_money"));
-		}
-		else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("btw_no_buyzone"));
-	}
-	else g_pUtils->PrintToChat(iSlot, "%s", g_pVIPCore->VIP_GetTranslate("NotAccess"));
+	
+	pMoneyServices->m_iAccount() -= wData.iPrice;
+	pItemServices->GiveNamedItem(wData.szName);
+	g_pUtils->SetStateChanged(pPlayerController, "CCSPlayerController", "m_pInGameMoneyServices");
 	return false;
 }
 
@@ -148,6 +125,43 @@ void OnStartupServer()
 void GetGameRules()
 {
 	g_pGameRules = g_pUtils->GetCCSGameRules();
+}
+
+void LoadConfig()
+{
+	KeyValues* hKv = new KeyValues("VIP");
+	const char *pszPath = "addons/configs/vip/vip_btw.ini";
+
+	if (!hKv->LoadFromFile(g_pFullFileSystem, pszPath))
+	{
+		g_pUtils->ErrorLog("[%s] Failed to load %s", g_PLAPI->GetLogTag(), pszPath);
+		return;
+	}
+
+	KeyValues* hCT = hKv->FindKey("CT");
+	if(hCT)
+	{
+		FOR_EACH_TRUE_SUBKEY(hCT, pValue)
+		{
+			const char* szCommand = pValue->GetName();
+			int iPrice = pValue->GetInt("price");
+			const char* szWeapon = pValue->GetString("weapon");
+			g_WeaponData[1][szCommand] = {szWeapon, iPrice};
+			g_pUtils->RegCommand(g_PLID, {}, {szCommand}, VIP_BuyWeapon);
+		}
+	}
+	KeyValues* hT = hKv->FindKey("T");
+	if(hT)
+	{
+		FOR_EACH_TRUE_SUBKEY(hT, pValue)
+		{
+			const char* szCommand = pValue->GetName();
+			int iPrice = pValue->GetInt("price");
+			const char* szWeapon = pValue->GetString("weapon");
+			g_WeaponData[0][szCommand] = {szWeapon, iPrice};
+			g_pUtils->RegCommand(g_PLID, {}, {szCommand}, VIP_BuyWeapon);
+		}
+	}
 }
 
 void vip_btw::AllPluginsLoaded()
@@ -174,10 +188,8 @@ void vip_btw::AllPluginsLoaded()
 	g_pUtils->StartupServer(g_PLID, OnStartupServer);
 	g_pUtils->OnGetGameRules(g_PLID, GetGameRules);
 	g_pUtils->HookEvent(g_PLID, "round_start", OnRoundStart);
-	g_pUtils->RegCommand(g_PLID, {"sm_ak47", "mm_ak47"}, {"!ak47", "ak47"}, VIP_AK47Command);
-	g_pUtils->RegCommand(g_PLID, {"sm_m4a1", "mm_m4a1"}, {"!m4a1", "m4a1"}, VIP_M4A1Command);
-	g_pUtils->RegCommand(g_PLID, {"sm_m4a4", "mm_m4a4"}, {"!m4a4", "m4a4"}, VIP_M4A4Command);
 	g_pVIPCore->VIP_RegisterFeature("btw", VIP_BOOL, HIDE);
+	LoadConfig();
 }
 
 const char *vip_btw::GetLicense()

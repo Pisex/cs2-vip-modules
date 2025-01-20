@@ -10,15 +10,10 @@ In **groups.ini** add:
 
 In **vip.phrases.txt** add:
 ```
-	"btw_round_start1"
+	"btw_round_start"
 	{
-		"en"	"The purchase of opposing team weapons is available to you: !ak47"
-		"ru"	"Вам доступна покупка оружия команды противника: !ak47"
-	}
-	"btw_round_start2"
-	{
-		"en"	"The purchase of opposing team weapons is available to you: !m4a1, !m4a4"
-		"ru"	"Вам доступна покупка оружия команды противника: !m4a1, !m4a4"
+		"en"	"The purchase of opposing team weapons is available to you: %s"
+		"ru"	"Вам доступна покупка оружия команды противника: %s"
 	}
 	"btw_no_money"
 	{
