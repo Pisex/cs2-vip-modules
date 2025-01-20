@@ -93,4 +93,6 @@ public:
 								ItemSelectableCallback	Item_select_callback	= nullptr,
 								ItemTogglableCallback	Item_togglable_callback	= nullptr,
 								ItemDisplayCallback		Item_display_callback	= nullptr) = 0;
+
+	virtual void VIP_OpenMenu(int iSlot) = 0;
 };

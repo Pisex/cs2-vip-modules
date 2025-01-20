@@ -55,13 +55,11 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 	{
 		CCSPlayerController* pController = CCSPlayerController::FromSlot(iSlot);
 		if (!pController) return;
-		uint64_t m_steamID = pController->m_steamID();
-		if(m_steamID == 0 || !pController->m_hPawn()) return;
-		if(pController->m_iDesiredFOV() != 90) return;
-		if(g_pVIPCore->VIP_GetClientFeatureString(iSlot, "FOV")[0])
+		
+		if(g_FOV[iSlot].size() > 0)
 		{
 			const char* szFOV = g_pVIPCore->VIP_GetClientCookie(iSlot, "FOV_Value");
-			int iFOV = std::stoi(szFOV[0]?szFOV:"90");
+			int iFOV = szFOV[0]?std::stoi(szFOV):90;
 			pController->m_iDesiredFOV() = iFOV;
 			g_pUtils->SetStateChanged(pController, "CBasePlayerController", "m_iDesiredFOV");
 		}
@@ -79,24 +77,6 @@ void OnStartupServer()
 	g_pEntitySystem = g_pGameEntitySystem;
 }
 
-void FOVMenuHandle(const char* szBack, const char* szFront, int iItem, int iSlot)
-{
-	if(iItem < 7)
-	{
-		CCSPlayerController* pController = CCSPlayerController::FromSlot(iSlot);
-		if (!pController)
-			return;
-		uint64_t m_steamID = pController->m_steamID();
-		if(m_steamID == 0 || !pController->m_hPawn())
-			return;
-
-		int iFOV = std::stoi(szBack);
-		g_pVIPCore->VIP_SetClientCookie(iSlot, "FOV_Value", szBack);
-		pController->m_iDesiredFOV() = iFOV;
-		g_pUtils->SetStateChanged(pController, "CBasePlayerController", "m_iDesiredFOV");
-	}
-}
-
 bool OnSelect(int iSlot, const char* szFeature)
 {
 	Menu hMenu;
@@ -105,8 +85,22 @@ bool OnSelect(int iSlot, const char* szFeature)
         g_pMenus->AddItemMenu(hMenu, element.c_str(), element.c_str());
     }
 	g_pMenus->SetExitMenu(hMenu, true);
-	g_pMenus->SetBackMenu(hMenu, false);
-	g_pMenus->SetCallback(hMenu, FOVMenuHandle);
+	g_pMenus->SetBackMenu(hMenu, true);
+	g_pMenus->SetCallback(hMenu, [](const char* szBack, const char* szFront, int iItem, int iSlot)
+	{
+		if(iItem < 7)
+		{
+			CCSPlayerController* pController = CCSPlayerController::FromSlot(iSlot);
+			if (!pController)
+				return;
+			int iFOV = std::stoi(szBack);
+			g_pVIPCore->VIP_SetClientCookie(iSlot, "FOV_Value", strdup(szBack));
+			pController->m_iDesiredFOV() = iFOV;
+			g_pUtils->SetStateChanged(pController, "CBasePlayerController", "m_iDesiredFOV");
+			OnSelect(iSlot, "FOV");
+		}
+		else if(iItem == 7) g_pVIPCore->VIP_OpenMenu(iSlot);
+	});
 	g_pMenus->DisplayPlayerMenu(hMenu, iSlot);
 	return false;
 }
