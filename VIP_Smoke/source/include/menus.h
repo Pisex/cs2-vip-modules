@@ -4,14 +4,32 @@
 #include <string>
 
 /////////////////////////////////////////////////////////////////
-///////////////////////      MYSQL     //////////////////////////
+///////////////////////      PLAYERS     //////////////////////////
 /////////////////////////////////////////////////////////////////
 
+typedef std::function<void(int iSlot, uint64 iSteamID64)> OnClientAuthorizedCallback;
 
+#define PLAYERS_INTERFACE "IPlayersApi"
+class IPlayersApi
+{
+public:
+    virtual bool IsFakeClient(int iSlot) = 0;
+    virtual bool IsAuthenticated(int iSlot) = 0;
+    virtual bool IsConnected(int iSlot) = 0;
+    virtual bool IsInGame(int iSlot) = 0;
+    virtual const char* GetIpAddress(int iSlot) = 0;
+    virtual uint64 GetSteamID64(int iSlot) = 0;
+    virtual const CSteamID* GetSteamID(int iSlot) = 0;
+
+    virtual void HookOnClientAuthorized(SourceMM::PluginId id, OnClientAuthorizedCallback callback) = 0;
+};
 
 /////////////////////////////////////////////////////////////////
 ///////////////////////      UTILS     //////////////////////////
 /////////////////////////////////////////////////////////////////
+
+class CCSGameRules;
+class CTimer;
 
 #define Utils_INTERFACE "IUtilsApi"
 
@@ -45,6 +63,26 @@ public:
     virtual void SetStateChanged(CBaseEntity* entity, const char* sClassName, const char* sFieldName, int extraOffset = 0) = 0;
 
     virtual void ClearAllHooks(SourceMM::PluginId id) = 0;
+
+    virtual void LoadTranslations(const char* szFile) = 0;
+	virtual void PrintToConsole(int iSlot, const char* msg, ...) = 0;
+	virtual void PrintToConsoleAll(const char* msg, ...) = 0;
+	virtual void PrintToCenter(int iSlot, const char* msg, ...) = 0;
+	virtual void PrintToCenterAll(const char* msg, ...) = 0;
+	virtual void PrintToCenterHtml(int iSlot, int iDuration, const char* msg, ...) = 0;
+	virtual void PrintToCenterHtmlAll(int iDuration, const char* msg, ...) = 0;
+
+    virtual void LogToFile(const char* szFile, const char* szText, ...) = 0;
+    virtual void ErrorLog(const char* msg, ...) = 0;
+    virtual void PrintToAlert(int iSlot, const char *msg, ...) = 0;
+	virtual void PrintToAlertAll(const char *msg, ...) = 0;
+    virtual void SetEntityModel(CBaseModelEntity* pEntity, const char* szModel) = 0;
+    virtual void DispatchSpawn(CEntityInstance* pEntity, CEntityKeyValues*) = 0;
+    virtual CBaseEntity* CreateEntityByName(const char *pClassName, CEntityIndex iForceEdictIndex) = 0;
+    virtual void RemoveEntity(CEntityInstance* pEntity) = 0;
+    virtual void AcceptEntityInput(CEntityInstance* pEntity, const char* szInputName, variant_t value = variant_t(""), CEntityInstance *pActivator = nullptr, CEntityInstance *pCaller = nullptr) = 0;
+    virtual CTimer* CreateTimer(float flInterval, std::function<float()> func) = 0;
+    virtual void RemoveTimer(CTimer* timer) = 0;
 };
 
 /////////////////////////////////////////////////////////////////
@@ -80,6 +118,7 @@ struct MenuPlayer
     bool bEnabled;
     int iList;
     Menu hMenu;
+    int iEnd;
 };
 
 class IMenusApi
@@ -92,6 +131,7 @@ public:
 	virtual void SetTitleMenu(Menu& hMenu, const char* szTitle) = 0;
 	virtual void SetCallback(Menu& hMenu, MenuCallbackFunc func) = 0;
     virtual void ClosePlayerMenu(int iSlot) = 0;
+    virtual std::string escapeString(const std::string& input) = 0;
 };
 
 /////////////////////////////////////////////////////////////////
