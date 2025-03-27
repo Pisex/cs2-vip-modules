@@ -47,11 +47,11 @@ bool fh_vip::Unload(char *error, size_t maxlen)
 	return true;
 }
 
-void OnClientAuthorized(int iSlot, uint64 iSteamID64)
+void OnClientAuthorized(int iSlot, bool bIsVIP)
 {
-	g_pUtils->NextFrame([iSlot](){
+	if(bIsVIP && g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "fortnite_hits")) {
 		g_pFortniteHits->GiveClientAccess(iSlot);
-	});
+	}
 }
 
 bool OnToggle(int iSlot, const char* szFeature, VIP_ToggleState eOldStatus, VIP_ToggleState& eNewStatus)
@@ -101,9 +101,9 @@ void fh_vip::AllPluginsLoaded()
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
+	g_pVIPCore->VIP_OnClientLoaded(OnClientAuthorized);
 	g_pVIPCore->VIP_RegisterFeature("fortnite_hits", VIP_BOOL, TOGGLABLE, nullptr, OnToggle);
 	g_pUtils->StartupServer(g_PLID, StartupServer);
-	g_pPlayers->HookOnClientAuthorized(g_PLID, OnClientAuthorized);
 }
 
 ///////////////////////////////////////
@@ -114,7 +114,7 @@ const char* fh_vip::GetLicense()
 
 const char* fh_vip::GetVersion()
 {
-	return "1.0";
+	return "1.0.1";
 }
 
 const char* fh_vip::GetDate()
