@@ -36,6 +36,7 @@ bool RegenHP(int iSlot)
 	if (!pController)
 		return false;
 	CCSPlayerPawn* pPawn = pController->GetPlayerPawn();
+	if(!pPawn) return false;
 	if(pPawn->m_iTeamNum() >= 2 && pPawn->IsAlive())
 	{
 		int iMaxHP = pPawn->m_iMaxHealth();
@@ -101,6 +102,7 @@ void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 			return;
 		
 		CCSPlayerPawn* pPawn = pController->GetPlayerPawn();
+		if(!pPawn) return;
 		if(pPawn->m_iTeamNum() < 2 || !pPawn->IsAlive())
 			return;
 		

@@ -37,6 +37,7 @@ bool RegenArmor(int iSlot)
 	if (!pController)
 		return false;
 	CCSPlayerPawn* pPawn = pController->GetPlayerPawn();
+	if(!pPawn) return false;
 	if(pPawn->m_iTeamNum() < 2 || !pPawn->IsAlive())
 		return false;
 
@@ -113,10 +114,10 @@ void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && pEvent->GetInt("dmg_armor"))
 	{
 		auto pController = CCSPlayerController::FromSlot(iSlot);
-		if (!pController)
-			return;
+		if (!pController) return;
 		
 		CCSPlayerPawn* pPawn = pController->GetPlayerPawn();
+		if(!pPawn) return;
 		if(pPawn->m_iTeamNum() < 2 || !pPawn->IsAlive())
 			return;
 
