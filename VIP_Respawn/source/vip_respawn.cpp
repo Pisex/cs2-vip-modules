@@ -11,8 +11,6 @@ IVEngineServer2* engine = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
-void (*UTIL_RespawnPlayer)(CBasePlayerController* pPlayer, CEntityInstance* pPawn, bool a3, bool a4) = nullptr;
-
 int g_iRespawns[63];
 bool g_isActive;
 
@@ -49,14 +47,6 @@ bool OnRespawnCommand(int iSlot, const char* szContent)
 				}
 				g_iRespawns[iSlot]++;
 				
-				const auto currentPawn = pPlayerController->m_hPawn().Get();
-				const auto playerPawn  = pPlayerController->m_hPlayerPawn().Get();
-				if (currentPawn != playerPawn)
-				{
-					const auto pawn = UTIL_FindEntityByEHandle(playerPawn);
-					if (pawn)
-						UTIL_RespawnPlayer(pPlayerController, pawn, true, false);
-				}
 				g_pPlayers->Respawn(iSlot);
 			}
 			else g_pUtils->PrintToChat(iSlot, g_pVIPCore->VIP_GetTranslate("LimitRespawn"));
@@ -79,14 +69,6 @@ bool vip_respawn::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, b
 	GET_V_IFACE_CURRENT(GetServerFactory, g_pSource2Server, ISource2Server, SOURCE2SERVER_INTERFACE_VERSION);
 	g_SMAPI->AddListener( this, this );
 
-	DynLibUtils::CModule libserver(g_pSource2Server);
-	UTIL_RespawnPlayer = libserver.FindPattern("55 48 89 E5 41 57 41 56 41 55 49 89 FD 41 54 45 89 C4").RCast< decltype(UTIL_RespawnPlayer) >();
-	if (!UTIL_RespawnPlayer)
-	{
-		V_strncpy(error, "Failed to find function to get UTIL_RespawnPlayer", maxlen);
-		ConColorMsg(Color(255, 0, 0, 255), "[%s] %s\n", GetLogTag(), error);
-		return false;
-	}
 	return true;
 }
 
