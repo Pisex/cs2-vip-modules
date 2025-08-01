@@ -73,12 +73,81 @@ void OnRoundStart(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
     }
 }
 
+
+std::string StripQuotes(const std::string& str) {
+	if (str.length() >= 2 && str.front() == '"' && str.back() == '"') {
+		return str.substr(1, str.length() - 2);
+	}
+	return str;
+}
+
+std::string TrimTrailingQuote(const std::string& str) {
+	if (!str.empty() && str.back() == '"') {
+		return str.substr(0, str.length() - 1);
+	}
+	return str;
+}
+
+std::vector<std::string> SplitStringBySpace(const std::string& input) {
+	std::vector<std::string> tokens;
+	std::string current;
+	bool inQuotes = false;
+
+	for (size_t i = 0; i < input.size(); ++i) {
+		char ch = input[i];
+
+		if (ch == '"') {
+			inQuotes = !inQuotes;
+			continue;
+		}
+
+		if (std::isspace(static_cast<unsigned char>(ch)) && !inQuotes) {
+			if (!current.empty()) {
+				tokens.push_back(current);
+				current.clear();
+			}
+		} else {
+			current += ch;
+		}
+	}
+
+	if (!current.empty()) {
+		tokens.push_back(current);
+	}
+
+	return tokens;
+}
+
+std::string safe_replace(const std::string& subject,
+                         const std::string& search,
+                         const std::string& replace) {
+    if (search.empty()) {
+        return subject; // Нельзя искать пустую строку — это приведёт к бесконечному циклу
+    }
+
+    std::string result = subject;
+    size_t pos = 0;
+
+    while ((pos = result.find(search, pos)) != std::string::npos) {
+        result.replace(pos, search.length(), replace);
+        pos += replace.length(); // Продвигаемся вперёд, чтобы избежать зацикливания
+    }
+
+    return result;
+}
+
 bool VIP_BuyWeapon(int iSlot, const char* szContent)
 {
-	CCommand arg;
-	arg.Tokenize(szContent);
-	if(arg.ArgC() < 1) return false;
-	std::string sCommand = arg.Arg(0);
+	// CCommand arg;
+	// arg.Tokenize(szContent);
+	// if(arg.ArgC() < 1) return false;
+	// std::string sCommand = arg.Arg(0);
+	std::vector<std::string> args = SplitStringBySpace(szContent);
+	if (args.empty()) return false;
+	std::string sCommand = args[0];
+	sCommand = safe_replace(sCommand, "mm_", "");
+	sCommand = safe_replace(sCommand, "!", "");
+	
 	if(g_WeaponData[0].find(sCommand) == g_WeaponData[0].end() && g_WeaponData[1].find(sCommand) == g_WeaponData[1].end()) return false;
 	if(!g_pVIPCore->VIP_IsClientVIP(iSlot) || !g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "btw")) return false;
 	CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
@@ -147,7 +216,10 @@ void LoadConfig()
 			int iPrice = pValue->GetInt("price");
 			const char* szWeapon = pValue->GetString("weapon");
 			g_WeaponData[1][szCommand] = {szWeapon, iPrice};
-			g_pUtils->RegCommand(g_PLID, {}, {szCommand}, VIP_BuyWeapon);
+			char szChat[128], szConsole[128];
+			g_SMAPI->Format(szChat, sizeof(szChat), "!%s", szCommand);
+			g_SMAPI->Format(szConsole, sizeof(szConsole), "mm_%s", szCommand);
+			g_pUtils->RegCommand(g_PLID, {szConsole}, {szChat}, VIP_BuyWeapon);
 		}
 	}
 	KeyValues* hT = hKv->FindKey("T");
@@ -159,7 +231,10 @@ void LoadConfig()
 			int iPrice = pValue->GetInt("price");
 			const char* szWeapon = pValue->GetString("weapon");
 			g_WeaponData[0][szCommand] = {szWeapon, iPrice};
-			g_pUtils->RegCommand(g_PLID, {}, {szCommand}, VIP_BuyWeapon);
+			char szChat[128], szConsole[128];
+			g_SMAPI->Format(szChat, sizeof(szChat), "!%s", szCommand);
+			g_SMAPI->Format(szConsole, sizeof(szConsole), "mm_%s", szCommand);
+			g_pUtils->RegCommand(g_PLID, {szConsole}, {szChat}, VIP_BuyWeapon);
 		}
 	}
 }

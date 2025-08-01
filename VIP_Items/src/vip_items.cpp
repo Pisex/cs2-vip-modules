@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "vip_items.h"
 #include "schemasystem/schemasystem.h"
+#include <sstream>
 
 vip_items g_vip_items;
 
@@ -39,6 +40,50 @@ bool vip_items::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, boo
 	return true;
 }
 
+std::string StripQuotes(const std::string& str) {
+	if (str.length() >= 2 && str.front() == '"' && str.back() == '"') {
+		return str.substr(1, str.length() - 2);
+	}
+	return str;
+}
+
+std::string TrimTrailingQuote(const std::string& str) {
+	if (!str.empty() && str.back() == '"') {
+		return str.substr(0, str.length() - 1);
+	}
+	return str;
+}
+
+std::vector<std::string> SplitStringBySpace(const std::string& input) {
+	std::vector<std::string> tokens;
+	std::string current;
+	bool inQuotes = false;
+
+	for (size_t i = 0; i < input.size(); ++i) {
+		char ch = input[i];
+
+		if (ch == '"') {
+			inQuotes = !inQuotes;
+			continue;
+		}
+
+		if (std::isspace(static_cast<unsigned char>(ch)) && !inQuotes) {
+			if (!current.empty()) {
+				tokens.push_back(current);
+				current.clear();
+			}
+		} else {
+			current += ch;
+		}
+	}
+
+	if (!current.empty()) {
+		tokens.push_back(current);
+	}
+
+	return tokens;
+}
+
 void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 {
 	if(bIsVIP)
@@ -55,7 +100,7 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 				if(!pItemServices) return;
 				CPlayer_WeaponServices* pWeaponServices = pPlayerPawn->m_pWeaponServices();
 				if(!pWeaponServices) return;
-				CUtlVector<char*> m_items;
+				std::vector<std::string> m_items;
 				std::vector<std::string> hWeapons;
 				CUtlVector<CHandle<CBasePlayerWeapon>>* weapons = pWeaponServices->m_hMyWeapons();
 				FOR_EACH_VEC(*weapons, i)
@@ -67,30 +112,30 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 
 				if (const char* pszItems = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "items"))
 				{
-					V_SplitString(pszItems, " ", m_items);
+					m_items = SplitStringBySpace(pszItems);
 				}
-				for (int i = 0; i < m_items.Count(); i++)
+				if (m_items.empty()) return;
+				for (size_t i = 0; i < m_items.size(); ++i)
 				{
-					if(!strcmp(m_items[i], "weapon_smokegrenade")) {
-						if(!pWeaponServices->m_iAmmo()[15]) pItemServices->GiveNamedItem(m_items[i]);
-					} else if(!strcmp(m_items[i], "weapon_flashbang")) {
-						if(!pWeaponServices->m_iAmmo()[14]) pItemServices->GiveNamedItem(m_items[i]);
-					} else if(!strcmp(m_items[i], "weapon_decoy")) {
-						if(!pWeaponServices->m_iAmmo()[17]) pItemServices->GiveNamedItem(m_items[i]);
-					} else if(!strcmp(m_items[i], "weapon_molotov")) {
-						if(!pWeaponServices->m_iAmmo()[16]) pItemServices->GiveNamedItem(m_items[i]);
-					} else if(!strcmp(m_items[i], "weapon_incgrenade")) {
-						if(!pWeaponServices->m_iAmmo()[16]) pItemServices->GiveNamedItem(m_items[i]);
-					} else if(!strcmp(m_items[i],"weapon_hegrenade")) {
-						if(!pWeaponServices->m_iAmmo()[13]) pItemServices->GiveNamedItem(m_items[i]);
+					if(!strcmp(m_items[i].c_str(), "weapon_smokegrenade")) {
+						if(!pWeaponServices->m_iAmmo()[15]) pItemServices->GiveNamedItem(m_items[i].c_str());
+					} else if(!strcmp(m_items[i].c_str(), "weapon_flashbang")) {
+						if(!pWeaponServices->m_iAmmo()[14]) pItemServices->GiveNamedItem(m_items[i].c_str());
+					} else if(!strcmp(m_items[i].c_str(), "weapon_decoy")) {
+						if(!pWeaponServices->m_iAmmo()[17]) pItemServices->GiveNamedItem(m_items[i].c_str());
+					} else if(!strcmp(m_items[i].c_str(), "weapon_molotov")) {
+						if(!pWeaponServices->m_iAmmo()[16]) pItemServices->GiveNamedItem(m_items[i].c_str());
+					} else if(!strcmp(m_items[i].c_str(), "weapon_incgrenade")) {
+						if(!pWeaponServices->m_iAmmo()[16]) pItemServices->GiveNamedItem(m_items[i].c_str());
+					} else if(!strcmp(m_items[i].c_str(),"weapon_hegrenade")) {
+						if(!pWeaponServices->m_iAmmo()[13]) pItemServices->GiveNamedItem(m_items[i].c_str());
 					} else {
 						auto it = std::find(hWeapons.begin(), hWeapons.end(), m_items[i]);
 						if (it == hWeapons.end()) {
-							pItemServices->GiveNamedItem(m_items[i]);
+							pItemServices->GiveNamedItem(m_items[i].c_str());
 						}
 					}
 				}
-				m_items.PurgeAndDeleteElements();
 				hWeapons.clear();
 			}
 		}

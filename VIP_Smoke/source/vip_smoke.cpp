@@ -44,6 +44,50 @@ void VIP_OnVIPLoaded()
 	g_pGameEntitySystem->AddListenerEntity(&g_EntityListener);
 }
 
+std::string StripQuotes(const std::string& str) {
+	if (str.length() >= 2 && str.front() == '"' && str.back() == '"') {
+		return str.substr(1, str.length() - 2);
+	}
+	return str;
+}
+
+std::string TrimTrailingQuote(const std::string& str) {
+	if (!str.empty() && str.back() == '"') {
+		return str.substr(0, str.length() - 1);
+	}
+	return str;
+}
+
+std::vector<std::string> SplitStringBySpace(const std::string& input) {
+	std::vector<std::string> tokens;
+	std::string current;
+	bool inQuotes = false;
+
+	for (size_t i = 0; i < input.size(); ++i) {
+		char ch = input[i];
+
+		if (ch == '"') {
+			inQuotes = !inQuotes;
+			continue;
+		}
+
+		if (std::isspace(static_cast<unsigned char>(ch)) && !inQuotes) {
+			if (!current.empty()) {
+				tokens.push_back(current);
+				current.clear();
+			}
+		} else {
+			current += ch;
+		}
+	}
+
+	if (!current.empty()) {
+		tokens.push_back(current);
+	}
+
+	return tokens;
+}
+
 void CEntityListener::OnEntitySpawned(CEntityInstance* pEntity)
 {
 	CSmokeGrenadeProjectile* pGrenadeProjectile = dynamic_cast<CSmokeGrenadeProjectile*>(pEntity);
@@ -71,9 +115,15 @@ void CEntityListener::OnEntitySpawned(CEntityInstance* pEntity)
 		const char* pszSmokeColor = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "smoke_color");
 		if(strlen(pszSmokeColor) > 0)
 		{
-			CCommand args;
-			args.Tokenize(pszSmokeColor);
-			pGrenadeProjectile->m_vSmokeColor() = !strcmp(pszSmokeColor, "random") ? Vector(rand() % 255, rand() % 255, rand() % 255) : Vector(std::stoi(args[0]), std::stoi(args[1]), std::stoi(args[2]));
+			// CCommand args;
+			// args.Tokenize(pszSmokeColor);
+			std::vector<std::string> args = SplitStringBySpace(pszSmokeColor);
+			if(args.size() < 3)
+			{
+				g_pUtils->ErrorLog("Invalid smoke color format: %s. Expected format: r g b", pszSmokeColor);
+				return;
+			}
+			pGrenadeProjectile->m_vSmokeColor() = !strcmp(pszSmokeColor, "random") ? Vector(rand() % 255, rand() % 255, rand() % 255) : Vector(std::stoi(args[0].c_str()), std::stoi(args[1].c_str()), std::stoi(args[2].c_str()));
 		}
 	});
 }
