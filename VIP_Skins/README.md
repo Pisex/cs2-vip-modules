@@ -27,7 +27,7 @@ In **vip.phrases.txt** add:
     }
     "Cooldown"
     {
-        "en"    "Выбор станет доступным через %i сек"
-        "en"    "Выбор станет доступным через %i сек"
+        "en"    "The choice will become available in %i seconds"
+        "ru"    "Выбор станет доступным через %i сек"
     }
 ```
