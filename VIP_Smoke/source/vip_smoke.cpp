@@ -118,12 +118,16 @@ void CEntityListener::OnEntitySpawned(CEntityInstance* pEntity)
 			// CCommand args;
 			// args.Tokenize(pszSmokeColor);
 			std::vector<std::string> args = SplitStringBySpace(pszSmokeColor);
-			if(args.size() < 3)
+			if(args.size() < 3 && !strcmp(pszSmokeColor, "random"))
 			{
-				g_pUtils->ErrorLog("Invalid smoke color format: %s. Expected format: r g b", pszSmokeColor);
+				pGrenadeProjectile->m_vSmokeColor() = Vector(rand() % 255, rand() % 255, rand() % 255);
+				return;
+			} else if(args.size() < 3)
+			{
+				ConColorMsg(Color(255, 0, 0, 255), "[%s] Invalid smoke color format: %s\n", g_vip_smoke.GetLogTag(), pszSmokeColor);
 				return;
 			}
-			pGrenadeProjectile->m_vSmokeColor() = !strcmp(pszSmokeColor, "random") ? Vector(rand() % 255, rand() % 255, rand() % 255) : Vector(std::stoi(args[0].c_str()), std::stoi(args[1].c_str()), std::stoi(args[2].c_str()));
+			pGrenadeProjectile->m_vSmokeColor() = Vector(std::stoi(args[0].c_str()), std::stoi(args[1].c_str()), std::stoi(args[2].c_str()));
 		}
 	});
 }
