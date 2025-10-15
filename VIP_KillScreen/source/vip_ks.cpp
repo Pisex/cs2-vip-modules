@@ -57,17 +57,20 @@ void OnStartupServer()
 
 void OnPlayerDeath(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 {
-	CCSPlayerController* pPlayerController = static_cast<CCSPlayerController*>(pEvent->GetPlayerController("attacker"));
-    if(pPlayerController && pEvent->GetInt("attacker") != pEvent->GetInt("userid") && g_pVIPCore->VIP_GetClientFeatureBool(pEvent->GetInt("attacker"), "killscreen"))
-	{
-		CCSPlayerPawn* pPlayer = pPlayerController->m_hPlayerPawn();
-		if(pPlayer)
-		{
-			pPlayer->m_flHealthShotBoostExpirationTime().m_Value() =  g_pUtils->GetCGlobalVars()->curtime + fTime;
+    CCSPlayerController* pPlayerController = static_cast<CCSPlayerController*>(pEvent->GetPlayerController("attacker"));
+    if (pPlayerController && pEvent->GetInt("attacker") != pEvent->GetInt("userid") &&
+        g_pVIPCore->VIP_GetClientFeatureBool(pEvent->GetInt("attacker"), "killscreen"))
+    {
+        CCSPlayerPawn* pPlayer = pPlayerController->m_hPlayerPawn();
+        if (pPlayer)
+        {
+			const float until = g_pUtils->GetCGlobalVars()->curtime + fTime;
+			pPlayer->m_flHealthShotBoostExpirationTime().SetTime(until);
 			g_pUtils->SetStateChanged(pPlayer, "CCSPlayerPawn", "m_flHealthShotBoostExpirationTime");
-		}
-	}
+        }
+    }
 }
+
 
 void VIP_KS::AllPluginsLoaded()
 {
