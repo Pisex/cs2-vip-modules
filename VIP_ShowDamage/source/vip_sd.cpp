@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "vip_sd.h"
+#include "schemasystem/schemasystem.h"
 
 vip_sd g_vip_sd;
 
@@ -7,7 +8,6 @@ IVIPApi* g_pVIPCore;
 IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
-CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
@@ -15,7 +15,7 @@ PLUGIN_EXPOSE(vip_sd, g_vip_sd);
 bool vip_sd::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	GET_V_IFACE_ANY(GetEngineFactory, g_pCSchemaSystem, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	g_SMAPI->AddListener( this, this );
 	return true;
@@ -24,7 +24,6 @@ bool vip_sd::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool l
 bool vip_sd::Unload(char *error, size_t maxlen)
 {
 	delete g_pVIPCore;
-	g_pUtils->ClearAllHooks(g_PLID);
 	delete g_pUtils;
 	return true;
 }
@@ -32,6 +31,20 @@ bool vip_sd::Unload(char *error, size_t maxlen)
 void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 {
 	int iSlot = pEvent->GetPlayerSlot("attacker").Get();
+    int victimIndex = pEvent->GetPlayerSlot("userid").Get();
+
+	CCSPlayerController* pAttacker = CCSPlayerController::FromSlot(iSlot);
+    CCSPlayerController* pVictim = CCSPlayerController::FromSlot(victimIndex);
+
+    if (!pAttacker || !pVictim)
+        return;
+
+    int attackerTeam = pAttacker->m_iTeamNum();
+    int victimTeam = pVictim->m_iTeamNum();
+
+	if (attackerTeam == victimTeam)
+        return;
+	
 	if(g_pVIPCore->VIP_IsClientVIP(iSlot) && g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "show_damage"))
 	{
 		g_pVIPCore->VIP_PrintToCenter(pEvent->GetPlayerSlot("attacker").Get(), "-%i", pEvent->GetInt("dmg_health"));

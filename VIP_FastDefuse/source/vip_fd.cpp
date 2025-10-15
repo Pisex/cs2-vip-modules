@@ -47,12 +47,12 @@ void OnBeginDefuse(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 			CPlantedC4* pBomb = (CPlantedC4*)UTIL_FindEntityByClassname("planted_c4");
 			if(!pBomb) return;
 			float fCountDown;
-			if(pBomb->m_flDefuseCountDown().m_Value() < gpGlobals->curtime)
+			if(pBomb->m_flDefuseCountDown().GetTime() < gpGlobals->curtime)
 				fCountDown = 10.0;
 			else
-				fCountDown = pBomb->m_flDefuseCountDown().m_Value() - gpGlobals->curtime;
+				fCountDown = pBomb->m_flDefuseCountDown().GetTime() - gpGlobals->curtime;
 			fCountDown -= fCountDown/100.0*float(iValue);
-			pBomb->m_flDefuseCountDown().m_Value() = fCountDown + gpGlobals->curtime;
+			pBomb->m_flDefuseCountDown().SetTime(fCountDown + gpGlobals->curtime);
 			pPlayerPawn->m_iProgressBarDuration() = ceil(fCountDown);
 		});
 	}

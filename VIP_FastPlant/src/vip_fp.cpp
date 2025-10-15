@@ -48,7 +48,7 @@ void OnBeginPlant(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 		if(hActiveWeapon && strstr(hActiveWeapon->GetClassname(), "c4"))
 		{
 			CC4* cC4 = (CC4*)hActiveWeapon;
-			cC4->m_fArmedTime().m_Value() = gpGlobals->curtime;
+			cC4->m_fArmedTime().SetTime(gpGlobals->curtime);
 		}
 	}
 }

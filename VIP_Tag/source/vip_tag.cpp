@@ -6,7 +6,6 @@ VIPTag g_VIPTag;
 IVIPApi* g_pVIPCore;
 
 IVEngineServer2* engine = nullptr;
-CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
@@ -14,7 +13,7 @@ PLUGIN_EXPOSE(VIPTag, g_VIPTag);
 bool VIPTag::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	GET_V_IFACE_ANY(GetEngineFactory, g_pCSchemaSystem, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	g_SMAPI->AddListener( this, this );
 	return true;
@@ -30,7 +29,7 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 {
 	if(bIsVIP)
 	{
-		CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iSlot + 1));
+		CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
 		if(!pPlayerController) return;
 		const char* szClan = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "clantag");
 		if(strlen(szClan) > 0)
@@ -42,7 +41,7 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 
 void VIP_OnVIPClientRemoved(int iSlot, int iReason)
 {
-	CCSPlayerController* pPlayerController =  (CCSPlayerController *)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iSlot + 1));
+	CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
 	if(!pPlayerController) return;
 	pPlayerController->m_szClan() = CUtlSymbolLarge("\0");
 }

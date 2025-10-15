@@ -7,7 +7,6 @@ IVIPApi* g_pVIPCore;
 IUtilsApi* g_pUtils;
 
 IVEngineServer2* engine = nullptr;
-CSchemaSystem* g_pCSchemaSystem = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
@@ -16,7 +15,7 @@ PLUGIN_EXPOSE(VIPvampirism, g_VIPvampirism);
 bool VIPvampirism::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	GET_V_IFACE_ANY(GetEngineFactory, g_pCSchemaSystem, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetServerFactory, g_pSource2Server, ISource2Server, SOURCE2SERVER_INTERFACE_VERSION);
 	g_SMAPI->AddListener( this, this );
@@ -65,7 +64,7 @@ void OnPlayerHurt(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 {
 	int iAttacker = pEvent->GetPlayerSlot("attacker").Get();
 	if (iAttacker == pEvent->GetInt("userid")) return;
-	CCSPlayerController* pAttacker = (CCSPlayerController*)g_pEntitySystem->GetBaseEntity((CEntityIndex)(iAttacker + 1));
+	CCSPlayerController* pAttacker = CCSPlayerController::FromSlot(iAttacker);
 	if(!pAttacker) return;
 	CCSPlayerPawnBase* pPlayerPawn = pAttacker->m_hPlayerPawn();
 	if (!pPlayerPawn || pPlayerPawn->m_lifeState() != LIFE_ALIVE)
