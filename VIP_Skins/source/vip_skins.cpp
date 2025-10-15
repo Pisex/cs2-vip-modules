@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "vip_skins.h"
 #include <fstream>
-#include "entitykeyvalues.h"
 #include <sstream>
 
 vip_skins g_vip_skins;
@@ -19,15 +18,19 @@ PLUGIN_EXPOSE(vip_skins, g_vip_skins);
 struct Skin
 {
 	std::string sName;
-	std::string sModel;
+	std::string sModel_T;
+	std::string sModel_CT;
 };
 
 std::map<std::string, Skin> g_SkinsList;
 
 std::string g_PlayerSkin[64];
-std::string g_DefaultSkin[64];
+std::string g_DefaultSkin_CT[64];
+std::string g_DefaultSkin_T[64];
 
+int g_iCoolDown[64];
 float g_fTime;
+int g_iCoolD;
 
 CGameEntitySystem* GameEntitySystem()
 {
@@ -45,10 +48,12 @@ void LoadConfig()
 		return;
 	}
 	g_SkinsList.clear();
+
 	g_fTime = g_kvSettings->GetFloat("time", 2);
+	g_iCoolD = g_kvSettings->GetInt("cooldown", 30);
 	FOR_EACH_SUBKEY(g_kvSettings, pValue)
 	{
-		g_SkinsList[pValue->GetName()] = {pValue->GetString("name"), pValue->GetString("model")};
+		g_SkinsList[pValue->GetName()] = {pValue->GetString("name"), pValue->GetString("model_ct"), pValue->GetString("model_t")};
 	}
 }
 
@@ -97,10 +102,16 @@ void OnPlayerSpawn(const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 			if (!pController) return -1.0f;
 			CCSPlayerPawn* pPawn = pController->GetPlayerPawn();
 			if(!pPawn) return -1.0f;
-			if(pPawn->m_iTeamNum() < 2 || !pPawn->IsAlive()) return -1.0f;
-			g_DefaultSkin[iSlot] = pPawn->GetModelName().String();
-			if(g_SkinsList[g_PlayerSkin[iSlot]].sModel.size())
-				g_pUtils->SetEntityModel(pPawn, g_SkinsList[g_PlayerSkin[iSlot]].sModel.c_str());
+			if(pPawn->GetTeam() < 2 || !pPawn->IsAlive()) return -1.0f;
+			if(pPawn->GetTeam() == 2) {
+				g_DefaultSkin_T[iSlot] = pPawn->GetModelName().String();
+				if(g_SkinsList[g_PlayerSkin[iSlot]].sModel_T.size())
+					g_pUtils->SetEntityModel(pPawn, g_SkinsList[g_PlayerSkin[iSlot]].sModel_T.c_str());
+			} else if(pPawn->GetTeam() == 3) {
+				g_DefaultSkin_CT[iSlot] = pPawn->GetModelName().String();
+				if(g_SkinsList[g_PlayerSkin[iSlot]].sModel_CT.size())
+					g_pUtils->SetEntityModel(pPawn, g_SkinsList[g_PlayerSkin[iSlot]].sModel_CT.c_str());
+			}
 			return -1.0f;
 		});
 	}
@@ -109,25 +120,47 @@ void SkinsMenuHandle(const char* szBack, const char* szFront, int iItem, int iSl
 {
 	if(iItem < 7)
 	{
+		if(g_iCoolDown[iSlot] > std::time(0)) {
+			g_pUtils->PrintToChat(iSlot, g_pVIPCore->VIP_GetTranslate("Cooldown"), g_iCoolDown[iSlot]-std::time(0));
+			return;
+		}
+		g_iCoolDown[iSlot] = std::time(0) + g_iCoolD;
 		g_PlayerSkin[iSlot] = szBack;
 		CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
 		if(!pPlayerController) return;
 		CCSPlayerPawnBase* pPlayerPawn = pPlayerController->GetPlayerPawn();
 		if(!pPlayerPawn) return;
-		int iTeam = pPlayerPawn->m_iTeamNum() - 2;
-		if(iTeam < 0 || iTeam > 1) return;
+		int iTeam = pPlayerPawn->GetTeam();
+		if(iTeam < 2) return;
 		if(!pPlayerPawn->IsAlive()) return;
 		g_pVIPCore->VIP_SetClientCookie(iSlot, "skin", szBack);
 		if(szBack[0] == '\0')
 		{
-			if(g_DefaultSkin[iSlot].size())
-				g_pUtils->SetEntityModel(pPlayerPawn, g_DefaultSkin[iSlot].c_str());
+			if(iTeam == 2)
+			{
+				if(g_DefaultSkin_T[iSlot].size())
+					g_pUtils->SetEntityModel(pPlayerPawn, g_DefaultSkin_T[iSlot].c_str());
+			}
+			else if(iTeam == 3)
+			{
+				if(g_DefaultSkin_CT[iSlot].size())
+					g_pUtils->SetEntityModel(pPlayerPawn, g_DefaultSkin_CT[iSlot].c_str());
+			}
 		}
 		else
 		{
-			g_DefaultSkin[iSlot] = pPlayerPawn->GetModelName().String();
-			if(g_SkinsList[g_PlayerSkin[iSlot]].sModel.size())
-				g_pUtils->SetEntityModel(pPlayerPawn, g_SkinsList[g_PlayerSkin[iSlot]].sModel.c_str());
+			if(iTeam == 2)
+			{
+				g_DefaultSkin_T[iSlot] = pPlayerPawn->GetModelName().String();
+				if(g_SkinsList[g_PlayerSkin[iSlot]].sModel_T.size())
+					g_pUtils->SetEntityModel(pPlayerPawn, g_SkinsList[g_PlayerSkin[iSlot]].sModel_T.c_str());
+			}
+			else if(iTeam == 3)
+			{
+				g_DefaultSkin_CT[iSlot] = pPlayerPawn->GetModelName().String();
+				if(g_SkinsList[g_PlayerSkin[iSlot]].sModel_CT.size())
+					g_pUtils->SetEntityModel(pPlayerPawn, g_SkinsList[g_PlayerSkin[iSlot]].sModel_CT.c_str());
+			}
 		}
 	}
 }
@@ -154,7 +187,8 @@ bool OnSelect(int iSlot, const char* szFeature)
 void OnClientLoaded(int iSlot, bool bIsVIP)
 {
 	g_PlayerSkin[iSlot] = "";
-	g_DefaultSkin[iSlot] = "";
+	g_DefaultSkin_CT[iSlot] = "";
+	g_DefaultSkin_T[iSlot] = "";
 	if(bIsVIP)
 	{
 		std::string skin = g_pVIPCore->VIP_GetClientCookie(iSlot, "skin");
