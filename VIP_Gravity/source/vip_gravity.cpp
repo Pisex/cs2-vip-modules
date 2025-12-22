@@ -41,6 +41,7 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
             if (fGravity >= 0.1f && fGravity <= 2.0f)
             {
                 pPlayerPawn->m_flGravityScale() = fGravity;
+                pPlayerPawn->m_flActualGravityScale() = fGravity;
             }
         }
     }
@@ -97,7 +98,7 @@ const char* GravityModule::GetLicense()
 
 const char* GravityModule::GetVersion()
 {
-    return "1.0";
+    return "1.0.1";
 }
 
 const char* GravityModule::GetDate()
