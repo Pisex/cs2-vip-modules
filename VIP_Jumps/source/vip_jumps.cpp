@@ -17,6 +17,7 @@ struct User
     int LastFlags;
     int JumpsCount;
     int NumberOfJumps;
+	bool JumpReleased;
 };
 
 CGameEntitySystem* GameEntitySystem()
@@ -96,18 +97,31 @@ void vip_jumps::AllPluginsLoaded()
 				if(!g_pVIPCore->VIP_GetClientFeatureBool(i, "jumps")) continue;
 
 				int flags = pPlayerPawn->m_fFlags();
-				int buttons = pPlayerPawn->m_pMovementServices()->m_nButtons().m_pButtonStates()[0];
+				int buttonsDown = pPlayerPawn->m_pMovementServices()->m_nButtons().m_pButtonStates()[0];
+				constexpr int jumpMask = (1 << 1);
+				bool jumpPressedThisFrame = ( (UserSettings[i].LastButtons & jumpMask) == 0 && (buttonsDown & jumpMask) != 0 );
+				const int allowedExtra = std::max(0, UserSettings[i].NumberOfJumps - 1);
 				
 				if ((flags & FL_ONGROUND) != 0)
-					UserSettings[i].JumpsCount = 0;
-				else if ((UserSettings[i].LastButtons & (1 << 1)) == 0 && (buttons & (1 << 1)) != 0 && UserSettings[i].JumpsCount < UserSettings[i].NumberOfJumps)
 				{
-					UserSettings[i].JumpsCount ++;
-					pPlayerPawn->m_vecAbsVelocity().z = 300;
+					UserSettings[i].JumpsCount = 0;
+					UserSettings[i].JumpReleased = false;
+				}
+				else
+				{
+					if ((buttonsDown & jumpMask) == 0)
+						UserSettings[i].JumpReleased = true;
+
+					if (UserSettings[i].JumpReleased && jumpPressedThisFrame && UserSettings[i].JumpsCount < allowedExtra)
+					{
+						UserSettings[i].JumpsCount ++;
+						pPlayerPawn->m_vecAbsVelocity().z = 300;
+						UserSettings[i].JumpReleased = false;
+					}
 				}
 
 				UserSettings[i].LastFlags = flags;
-				UserSettings[i].LastButtons = buttons;
+				UserSettings[i].LastButtons = buttonsDown;
 			}
 		}
 		return 0.0f;
@@ -121,7 +135,7 @@ const char *vip_jumps::GetLicense()
 
 const char *vip_jumps::GetVersion()
 {
-	return "1.0";
+	return "1.0.1";
 }
 
 const char *vip_jumps::GetDate()
@@ -136,7 +150,7 @@ const char *vip_jumps::GetLogTag()
 
 const char *vip_jumps::GetAuthor()
 {
-	return "Pisex";
+	return "Pisex && ABKAM";
 }
 
 const char *vip_jumps::GetDescription()
