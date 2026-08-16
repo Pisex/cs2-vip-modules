@@ -1,4 +1,4 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [RU](README-RU.md)
 # [VIP] [Модулі](https://github.com/bywinsty/cs2-vip-modules) для [VIP] [Ядра](https://github.com/bywinsty/cs2-vip)
 ## Вимоги
 - Виділений сервер CS2 з установленим [Metamod:Source](https://www.sourcemm.net/).
