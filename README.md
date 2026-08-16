@@ -52,7 +52,6 @@ addons/configs/vip/vip_time.ini
 
 5. Restart the server and verify that the core and selected module load successfully.
 ## Modules:
-| | | | |
 | --- | --- | --- | --- |
 | VIP_AntiFlash | [EN](VIP_AntiFlash/README.md) | [UA](VIP_AntiFlash/README-UA.md) | [RU](VIP_AntiFlash/README-RU.md) |
 | VIP_AwpManager | [EN](VIP_AwpManager/README.md) | [UA](VIP_AwpManager/README-UA.md) | [RU](VIP_AwpManager/README-RU.md) |

@@ -51,7 +51,6 @@ addons/configs/vip/vip_time.ini
 
 5. Перезапустіть сервер і перевірте, що ядро та вибраний модуль успішно завантажилися.
 ## Модулі:
-| | | | |
 | --- | --- | --- | --- |
 | VIP_AntiFlash | [EN](VIP_AntiFlash/README.md) | [UA](VIP_AntiFlash/README-UA.md) | [RU](VIP_AntiFlash/README-RU.md) |
 | VIP_AwpManager | [EN](VIP_AwpManager/README.md) | [UA](VIP_AwpManager/README-UA.md) | [RU](VIP_AwpManager/README-RU.md) |
