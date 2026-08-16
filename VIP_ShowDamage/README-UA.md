@@ -1,10 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [RU](README-RU.md)
 
-# [VIP] Show Damage
+# [VIP] [Show Damage](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_ShowDamage)
 
-Дозволяє VIP-гравцям бачити інформацію про завдану шкоду.
+## Дозволяє VIP-гравцям бачити інформацію про завдану шкоду.
 
-## Налаштування
+### Налаштування
 
 Додайте можливість до `addons/configs/vip/groups.ini`:
 
@@ -13,6 +13,8 @@
 ```
 
 Використовуйте `1`, щоб увімкнути можливість, або `0`, щоб вимкнути її.
+
+### Ключ перекладу
 
 Ключ фрази перекладу: `show_damage`.
 

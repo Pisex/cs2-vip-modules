@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [UA](README-UA.md)
 
-# [VIP] Fast Defuse
+# [VIP] [Fast Defuse](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_FastDefuse)
 
-Добавляет VIP-игрокам возможность быстрее обезвреживать бомбу.
+## Добавляет VIP-игрокам возможность быстрее обезвреживать бомбу.
+
+### Ключ возможности
 
 В `groups.ini` добавьте:
 
@@ -11,6 +13,8 @@
 ```
 
 `50` означает, на сколько процентов сокращается время обезвреживания.
+
+### Ключ перевода
 
 В `vip.phrases.txt` добавьте ключ `fd`.
 

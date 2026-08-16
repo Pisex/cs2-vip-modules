@@ -1,14 +1,17 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] Rainbow Model
-My Discord server - https://discord.com/invite/g798xERK5Y
+# [VIP] [Rainbow Model](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_RainbowModel)
 
-Adds the ability for VIP players to put a colored model
+## Adds the ability for VIP players to put a colored model
+
+### Feature key
 
 In **groups.ini** add:
 ```
 "rainbow_model" "1/0"
 ```
+
+### Translation key
 
 In **vip.phrases.txt** add:
 ```
@@ -18,4 +21,3 @@ In **vip.phrases.txt** add:
 		"ru"	"Разноцветная модель"
 	}
 ```
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

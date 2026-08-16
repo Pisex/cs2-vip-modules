@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] Items
+# [VIP] [Items](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Items)
 
-Gives VIP players the configured items on spawn after the configured round threshold.
+## Gives VIP players the configured items on spawn after the configured round threshold.
+
+### Configuration
 
 The module reads `addons/configs/vip/vip_items.ini` (included in the package):
 
@@ -15,6 +17,8 @@ The module reads `addons/configs/vip/vip_items.ini` (included in the package):
 
 `round_min` controls the first round in which items are given.
 
+### Feature key
+
 In `groups.ini` add:
 
 ```
@@ -22,6 +26,8 @@ In `groups.ini` add:
 ```
 
 List item entity names separated by spaces.
+
+### Translation key
 
 In `vip.phrases.txt` add:
 
@@ -32,4 +38,3 @@ In `vip.phrases.txt` add:
     "ru" "Оружие в начале раунда"
 }
 ```
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

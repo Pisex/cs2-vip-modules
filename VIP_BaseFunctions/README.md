@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] Base Functions
+# [VIP] [Base Functions](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_BaseFunctions)
 
-Adds health, armor, helmet, defuser and money settings to VIP groups. Values are applied when a VIP player spawns after the configured round threshold.
+## Adds health, armor, helmet, defuser and money settings to VIP groups. Values are applied when a VIP player spawns after the configured round threshold.
+
+### Configuration
 
 The module reads `addons/configs/vip/vip_bf.ini` (included in the package):
 
@@ -12,6 +14,8 @@ The module reads `addons/configs/vip/vip_bf.ini` (included in the package):
     "round_min" "1"
 }
 ```
+
+### Feature key
 
 In `groups.ini` add the features you need:
 
@@ -27,5 +31,6 @@ For `health`, `armor` and `money`, a plain number (for example, `120`) sets the 
 
 `round_min` controls when the module starts applying settings. The default `1` skips the pistol round; `0` enables the module from the beginning.
 
+### Translation key
+
 In `vip.phrases.txt` add the feature labels `health`, `armor`, `helmet`, `money` and `defuser`.
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

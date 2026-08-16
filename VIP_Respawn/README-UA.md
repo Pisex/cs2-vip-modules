@@ -1,14 +1,18 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [RU](README-RU.md)
 
-# [VIP] Respawn
+# [VIP] [Respawn](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Respawn)
+
+## Додає VIP-гравцям можливість відроджуватися.
+
+### Команди
 
 Команди: `mm_respawn`, `sm_respawn`, `respawn` і `!respawn`.
 
-Додає VIP-гравцям можливість відроджуватися.
+### Ключ перекладу
 
 Модуль також використовує ключі перекладу `YourAlive`, `SelectTeam`, `EndRound` і `LimitRespawn`.
 
-## Налаштування
+### Налаштування
 
 Додайте можливість до потрібної групи у `addons/configs/vip/groups.ini`:
 

@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] KillScreen
+# [VIP] [KillScreen](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_KillScreen)
 
-Shows a colored kill effect to a VIP attacker when they kill another player.
+## Shows a colored kill effect to a VIP attacker when they kill another player.
+
+### Configuration
 
 The module reads `addons/configs/vip/vip_ks.ini` (included in the package):
 
@@ -15,11 +17,15 @@ The module reads `addons/configs/vip/vip_ks.ini` (included in the package):
 
 `effect_time` is the effect duration in seconds.
 
+### Feature key
+
 In `groups.ini` add:
 
 ```
 "killscreen" "1/0"
 ```
+
+### Translation key
 
 In `vip.phrases.txt` add:
 
@@ -30,4 +36,3 @@ In `vip.phrases.txt` add:
     "ru" "Цветной экран убийства"
 }
 ```
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

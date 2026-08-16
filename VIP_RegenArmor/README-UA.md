@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [RU](README-RU.md)
 
-# [VIP] Regen Armor
+# [VIP] [Regen Armor](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_RegenArmor)
 
-Додає VIP-гравцям регенерацію броні.
+## Додає VIP-гравцям регенерацію броні.
+
+### Ключ можливості
 
 У `groups.ini` додайте:
 
@@ -21,6 +23,8 @@
 ```
 
 Після отримання шкоди проходить 5 секунд, після чого відновлюється 10 одиниць броні кожні 2 секунди.
+
+### Ключ перекладу
 
 У `vip.phrases.txt` додайте ключ `RegenArmor`.
 

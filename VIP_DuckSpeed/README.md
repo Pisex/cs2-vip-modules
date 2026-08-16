@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] DuckSpeed
+# [VIP] [DuckSpeed](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_DuckSpeed)
 
-Allows VIP players to change their crouch speed.
+## Allows VIP players to change their crouch speed.
+
+### Feature key
 
 In `groups.ini` add:
 

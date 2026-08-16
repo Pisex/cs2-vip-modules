@@ -1,9 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] Penis
-My Discord server - https://discord.com/invite/g798xERK5Y
+# [VIP] [Penis](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Penis)
 
-Adds a penis in the groin crotch of VIP players
+## Adds a penis in the groin crotch of VIP players
+
+### Feature key
 
 In **groups.ini** add:
 ```
@@ -19,6 +20,8 @@ models\kolka\penis\penis_medium.vmdl
 models\kolka\penis\penis.vmdl
 ```
 
+### Translation key
+
 In **vip.phrases.txt** add:
 ```
 	"penis"
@@ -27,4 +30,3 @@ In **vip.phrases.txt** add:
 		"ru"	"Пенис"
 	}
 ```
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

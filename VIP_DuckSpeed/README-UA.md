@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [RU](README-RU.md)
 
-# [VIP] DuckSpeed
+# [VIP] [DuckSpeed](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_DuckSpeed)
 
-Дозволяє VIP-гравцям змінювати швидкість присідання.
+## Дозволяє VIP-гравцям змінювати швидкість присідання.
+
+### Ключ можливості
 
 У `groups.ini` додайте:
 

@@ -1,16 +1,18 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [RU](README-RU.md)
 
-# [VIP] Vips
+# [VIP] [Vips](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Vips)
+
+## Показує список гравців із VIP-статусом.
+
+### Команди
 
 Консольні псевдоніми: `sm_vips`, `mm_vips` і `vips`.
 
-Показує список гравців із VIP-статусом.
-
-## Команди
+### Команди
 
 - `!vips` або `vips` — відкрити список VIP-гравців.
 
-## Конфігурація
+### Конфігурація
 
 Файл конфігурації: `addons/configs/vip/vip_vips.ini`
 

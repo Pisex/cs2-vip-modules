@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [RU](README-RU.md)
 
-# [VIP] MultiTest
+# [VIP] [MultiTest](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_MultiTest)
 
-Дозволяє звичайним гравцям отримати VIP-статус для налаштованої групи та тривалості. Перед установленням налаштуйте `addons/configs/vip/vip_multitest.ini`.
+## Дозволяє звичайним гравцям отримати VIP-статус для налаштованої групи та тривалості. Перед установленням налаштуйте `addons/configs/vip/vip_multitest.ini`.
+
+### Команди
 
 Команди:
 
@@ -22,11 +24,13 @@ addons/
 └── vip_modules/vip_multitest.so
 ```
 
+### Ключ перекладу
+
 У `vip.phrases.txt` додайте ключ `VIPMultiTest_Title`.
 
 Модуль також використовує ключ перекладу `AlreadyVIP`.
 
-## Оновлення зі старої версії
+### Оновлення зі старої версії
 
 Поточний `VIP_MultiTest` використовує окремий namespace `vip_multitest`:
 

@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [RU](README-RU.md)
 
-# [VIP] Penis
+# [VIP] [Penis](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Penis)
 
-Додає модель у пах VIP-гравця.
+## Додає модель у пах VIP-гравця.
+
+### Ключ можливості
 
 У `groups.ini` додайте:
 
@@ -19,6 +21,8 @@ models\kolka\penis\penis_small.vmdl
 models\kolka\penis\penis_medium.vmdl
 models\kolka\penis\penis.vmdl
 ```
+
+### Ключ перекладу
 
 У `vip.phrases.txt` додайте ключ `penis`.
 

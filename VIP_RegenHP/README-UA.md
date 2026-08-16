@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [RU](README-RU.md)
 
-# [VIP] Regen HP
+# [VIP] [Regen HP](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_RegenHP)
 
-Додає VIP-гравцям регенерацію здоров'я.
+## Додає VIP-гравцям регенерацію здоров'я.
+
+### Ключ можливості
 
 У `groups.ini` додайте:
 
@@ -21,6 +23,8 @@
 ```
 
 Після отримання шкоди проходить 5 секунд, потім відновлюється 10 HP кожні 2 секунди.
+
+### Ключ перекладу
 
 У `vip.phrases.txt` додайте ключ `RegenHP`.
 

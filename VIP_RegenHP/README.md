@@ -1,9 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] Regen HP
-My Discord server - https://discord.com/invite/g798xERK5Y
+# [VIP] [Regen HP](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_RegenHP)
 
-Adds a health regeneration feature to VIP
+## Adds a health regeneration feature to VIP
+
+### Feature key
 
 In **groups.ini** add:
 ```
@@ -19,6 +20,8 @@ Example:
 ```
 After damaging the player, 5 seconds must pass and recovery will begin at a rate of 10 xp every 2 seconds.
 
+### Translation key
+
 In **vip.phrases.txt** add:
 ```
 	"RegenHP"
@@ -27,4 +30,3 @@ In **vip.phrases.txt** add:
 		"ru"	"Реген ХП"
 	}
 ```
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

@@ -3,7 +3,7 @@
 ## Вимоги:
 - [Metamod:Source](https://www.sourcemm.net/downloads.php?branch=master&all=1).
 - [Ядро cs2-vip](https://github.com/bywinsty/cs2-vip).
-- Залежність ядра для бази даних `sql_mm` і налаштований `addons/configs/databases.cfg`.
+- Залежність ядра для бази даних `sql_mm` і налаштований `addons/configs/databases.cfg`, якщо використовуються функції ядра, що працюють із базою даних.
 - `VIP_Fortnite_Hits` додатково потребує плагін/API Fortnite Hits.
 ## Установлення:
 1. Спочатку встановіть і налаштуйте ядро.
@@ -35,7 +35,8 @@
 		"en/ua/ru"	"<module>"
 		"en/ua/ru"	"<module>"
 	}
-   ```
+```
+
 4. Створіть або відредагуйте конфігураційні файли модулів у `addons/configs/vip/`.
 
 Лише для модулів, README яких вимагає окремого конфігураційного файла.
@@ -47,6 +48,8 @@ addons/configs/vip/vip_skins.ini
 addons/configs/vip/vip_test.ini
 addons/configs/vip/vip_time.ini
 ```
+
+5. Перезапустіть сервер і перевірте, що ядро та вибраний модуль успішно завантажилися.
 ## Модулі:
 | Модуль | EN | UA | RU |
 | --- | --- | --- | --- |

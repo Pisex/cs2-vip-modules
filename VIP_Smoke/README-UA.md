@@ -1,10 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [RU](README-RU.md)
 
-# [VIP] Smoke
+# [VIP] [Smoke](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Smoke)
 
-Дозволяє VIP-гравцям використовувати кольоровий дим.
+## Дозволяє VIP-гравцям використовувати кольоровий дим.
 
-## Налаштування
+### Налаштування
 
 Додайте можливість до `addons/configs/vip/groups.ini`:
 
@@ -13,6 +13,8 @@
 ```
 
 Використовуйте точне значення `random` для випадкового кольору або три числа RGB через пробіл, наприклад `255 0 0`.
+
+### Ключ перекладу
 
 Ключ фрази перекладу: `smoke_color`.
 

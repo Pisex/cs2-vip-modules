@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] No Fall Damage
+# [VIP] [No Fall Damage](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_NoFallDamage)
 
-Allows VIP players to disable fall damage.
+## Allows VIP players to disable fall damage.
+
+### Feature key
 
 In `groups.ini` add:
 

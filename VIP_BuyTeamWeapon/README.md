@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] Buy an Opposing Team's Weapon
+# [VIP] [Buy an Opposing Team's Weapon](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_BuyTeamWeapon)
 
-Allows VIP players to buy weapons normally restricted to the opposing team.
+## Allows VIP players to buy weapons normally restricted to the opposing team.
+
+### Configuration
 
 The module requires `addons/configs/vip/vip_btw.ini` (included in the package). It contains separate `CT` and `T` sections; each entry defines the price and weapon entity name:
 
@@ -18,6 +20,8 @@ The module requires `addons/configs/vip/vip_btw.ini` (included in the package). 
 ```
 
 For every configured entry, the module registers `mm_<entry>` and `!<entry>` commands. The hidden VIP feature key `btw` controls access.
+
+### Translation key
 
 In `vip.phrases.txt` add:
 
@@ -38,4 +42,3 @@ In `vip.phrases.txt` add:
     "ru" "Вы не можете купить оружие, если вы не находитесь в зоне покупки"
 }
 ```
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

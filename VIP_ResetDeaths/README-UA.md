@@ -1,18 +1,26 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [RU](README-RU.md)
 
-# [VIP] Reset Deaths
+# [VIP] [Reset Deaths](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_ResetDeaths)
+
+## Дозволяє VIP-гравцям скидати кількість смертей через VIP-меню або командами `!rd`/`rd`. Окремо доступне скидання вбивств командами `!rs`/`rs`.
+
+### Команди
 
 Консольні псевдоніми: `sm_rd`/`mm_rd` для смертей і `sm_rs`/`mm_rs` для вбивств.
 
+### Ключ перекладу
+
 Модуль також використовує ключ перекладу `NotAccess`.
 
-Дозволяє VIP-гравцям скидати кількість смертей через VIP-меню або командами `!rd`/`rd`. Окремо доступне скидання вбивств командами `!rs`/`rs`.
+### Ключ можливості
 
 У `groups.ini` додайте:
 
 ```
 "ResetDeaths" "1"
 ```
+
+### Ключ перекладу
 
 У `vip.phrases.txt` додайте ключі `ResetDeaths`, `deaths_reset`, `deaths_already_zero`, `kills_reset` і `kills_already_zero`.
 

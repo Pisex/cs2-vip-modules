@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [UA](README-UA.md)
 
-# [VIP] Items
+# [VIP] [Items](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Items)
 
-Выдаёт VIP-игрокам настроенные предметы при появлении после заданного раунда.
+## Выдаёт VIP-игрокам настроенные предметы при появлении после заданного раунда.
+
+### Конфигурация
 
 Модуль читает `addons/configs/vip/vip_items.ini`:
 
@@ -15,11 +17,15 @@
 
 `round_min` определяет первый раунд, в котором выдаются предметы.
 
+### Ключ возможности
+
 В `groups.ini` добавьте имена entity через пробел:
 
 ```
 "items" "weapon_ak47 weapon_flashbang"
 ```
+
+### Ключ перевода
 
 В `vip.phrases.txt` добавьте ключ `items`.
 

@@ -1,14 +1,17 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] Endurance
-My Discord server - https://discord.com/invite/g798xERK5Y
+# [VIP] [Endurance](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Endurance)
 
-When shooting at a VIP player, he will not be slowed down
+## When shooting at a VIP player, he will not be slowed down
+
+### Feature key
 
 In **groups.ini** add:
 ```
 "Endurance" "0/1"
 ```
+
+### Translation key
 
 In **vip.phrases.txt** add:
 ```
@@ -18,4 +21,3 @@ In **vip.phrases.txt** add:
 		"ru"	"Выносливость"
 	}
 ```
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

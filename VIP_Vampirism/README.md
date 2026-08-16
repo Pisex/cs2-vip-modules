@@ -1,15 +1,18 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] Vampirism
-My Discord server - https://discord.com/invite/g798xERK5Y
+# [VIP] [Vampirism](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Vampirism)
 
-Allows players to regenerate health when dealing damage to enemies
+## Allows players to regenerate health when dealing damage to enemies
+
+### Feature key
 
 In **groups.ini** add:
 ```
 "Vampirism" "10"
 ```
 What percentage of damage will be added to health
+
+### Translation key
 
 In **vip.phrases.txt** add:
 ```
@@ -19,4 +22,3 @@ In **vip.phrases.txt** add:
 		"ru"	"Вампиризм"
 	}
 ```
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

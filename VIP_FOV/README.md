@@ -1,15 +1,18 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] FOV
-My Discord server - https://discord.com/invite/g798xERK5Y
+# [VIP] [FOV](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_FOV)
 
-Allows VIP players to change their viewing angle
+## Allows VIP players to change their viewing angle
+
+### Feature key
 
 In **groups.ini** add:
 ```
 "FOV" "100,90,80,70,60"
 ```
 Values separated by commas
+
+### Translation key
 
 In **vip.phrases.txt** add:
 ```
@@ -24,4 +27,3 @@ In **vip.phrases.txt** add:
 		"ru"	"Выберите FOV"
 	}
 ```
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

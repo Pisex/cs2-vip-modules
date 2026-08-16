@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] Time
+# [VIP] [Time](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Time)
 
-Grants a VIP group during a recurring time window. The module checks the window once per minute, grants the configured group to connected non-VIP players, and removes only the status it granted when the window ends.
+## Grants a VIP group during a recurring time window. The module checks the window once per minute, grants the configured group to connected non-VIP players, and removes only the status it granted when the window ends.
+
+### Configuration
 
 Create `addons/configs/vip/vip_time.ini`; this file is read by the module but is not included in the current package manifest:
 
@@ -16,4 +18,3 @@ Create `addons/configs/vip/vip_time.ini`; this file is read by the module but is
 ```
 
 Use 24-hour `HH:MM` values. Windows that cross midnight are supported.
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

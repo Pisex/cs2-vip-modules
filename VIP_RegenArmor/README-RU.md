@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [UA](README-UA.md)
 
-# [VIP] Regen Armor
+# [VIP] [Regen Armor](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_RegenArmor)
 
-Добавляет VIP-игрокам регенерацию брони.
+## Добавляет VIP-игрокам регенерацию брони.
+
+### Ключ возможности
 
 В `groups.ini` добавьте:
 
@@ -21,6 +23,8 @@
 ```
 
 После получения урона проходит 5 секунд, затем восстанавливается 10 единиц брони каждые 2 секунды.
+
+### Ключ перевода
 
 В `vip.phrases.txt` добавьте ключ `RegenArmor`.
 

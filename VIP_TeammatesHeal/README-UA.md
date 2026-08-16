@@ -1,12 +1,12 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [RU](README-RU.md)
 
-# [VIP] Teammates Heal
+# [VIP] [Teammates Heal](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_TeammatesHeal)
 
-Зцілює напарника, коли VIP завдає йому шкоди зброєю, що не входить до чорного списку.
+## Зцілює напарника, коли VIP завдає йому шкоди зброєю, що не входить до чорного списку.
 
 Відео: https://www.youtube.com/watch?v=SjS9edeV5zQ
 
-## Можливість
+### Можливість
 
 Додайте можливість до `addons/configs/vip/groups.ini` (файл `groups.ini`):
 
@@ -16,7 +16,7 @@
 
 Значення визначає максимальну кількість здоров’я, яку можна відновити за один постріл.
 
-## Конфігурація
+### Конфігурація
 
 Файл конфігурації: `addons/configs/vip/teammates_heal.ini`
 
@@ -31,6 +31,8 @@
 ```
 
 `max_shot_hp` обмежує кількість здоров’я, яку можна відновити за один постріл. Падіння не вважається шкодою від VIP, а здоров’я не збільшується понад максимальне значення.
+
+### Ключ перекладу
 
 У `vip.phrases.txt` додайте ключ фрази `heal_teammates`.
 

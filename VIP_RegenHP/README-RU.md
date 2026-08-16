@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [UA](README-UA.md)
 
-# [VIP] Regen HP
+# [VIP] [Regen HP](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_RegenHP)
 
-Добавляет VIP-игрокам регенерацию здоровья.
+## Добавляет VIP-игрокам регенерацию здоровья.
+
+### Ключ возможности
 
 В `groups.ini` добавьте:
 
@@ -21,6 +23,8 @@
 ```
 
 После получения урона проходит 5 секунд, затем восстанавливается 10 HP каждые 2 секунды.
+
+### Ключ перевода
 
 В `vip.phrases.txt` добавьте ключ `RegenHP`.
 

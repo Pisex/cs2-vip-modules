@@ -1,14 +1,17 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] Jumps
-My Discord server - https://discord.com/invite/g798xERK5Y
+# [VIP] [Jumps](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Jumps)
 
-Gives extra jumps to a VIP player
+## Gives extra jumps to a VIP player
+
+### Feature key
 
 In **groups.ini** add:
 ```
 "jumps" "count jumps"
 ```
+
+### Translation key
 
 In **vip.phrases.txt** add:
 ```
@@ -18,4 +21,3 @@ In **vip.phrases.txt** add:
 		"ru"	"Прыжки"
 	}
 ```
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

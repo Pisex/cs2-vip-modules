@@ -1,9 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] Regen Armor
-My Discord server - https://discord.com/invite/g798xERK5Y
+# [VIP] [Regen Armor](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_RegenArmor)
 
-Adds armor regeneration feature to VIP
+## Adds armor regeneration feature to VIP
+
+### Feature key
 
 In **groups.ini** add:
 ```
@@ -19,6 +20,8 @@ Example:
 ```
 After damaging the player, 5 seconds must pass and recovery will begin at a rate of 10 units of armor every 2 seconds.
 
+### Translation key
+
 In **vip.phrases.txt** add:
 ```
 	"RegenArmor"
@@ -27,4 +30,3 @@ In **vip.phrases.txt** add:
 		"ru"	"Реген Брони"
 	}
 ```
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

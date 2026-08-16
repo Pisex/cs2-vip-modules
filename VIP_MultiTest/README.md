@@ -1,8 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] MultiTest
+# [VIP] [MultiTest](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_MultiTest)
 
-Allows regular players to claim VIP status for a configured group and duration. Customize `addons/configs/vip/vip_multitest.ini` before installing.
+## Allows regular players to claim VIP status for a configured group and duration. Customize `addons/configs/vip/vip_multitest.ini` before installing.
+
+### Commands
 
 Commands:
 
@@ -22,6 +24,8 @@ addons/
 └── vip_modules/vip_multitest.so
 ```
 
+### Translation key
+
 In `vip.phrases.txt` add:
 
 ```
@@ -34,7 +38,7 @@ In `vip.phrases.txt` add:
 
 The module also uses the `AlreadyVIP` translation key.
 
-## Upgrade from an older version
+### Upgrade from an older version
 
 The current `VIP_MultiTest` uses the separate `vip_multitest` namespace:
 

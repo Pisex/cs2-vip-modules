@@ -1,10 +1,10 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [UA](README-UA.md)
 
-# [VIP] Tag
+# [VIP] [Tag](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Tag)
 
-Позволяет VIP-игрокам использовать тег клана в таблице счёта.
+## Позволяет VIP-игрокам использовать тег клана в таблице счёта.
 
-## Настройка
+### Настройка
 
 Добавьте возможность в `addons/configs/vip/groups.ini`:
 
@@ -13,6 +13,8 @@
 ```
 
 Значение `value` отображается как тег клана VIP-игрока.
+
+### Ключ перевода
 
 Ключ фразы перевода: `clantag`.
 

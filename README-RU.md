@@ -1,20 +1,11 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
-
-# [VIP] Модули
-
-Необязательные C++-модули для [ядра cs2-vip](https://github.com/bywinsty/cs2-vip). Каждый модуль регистрирует собственные возможности через `IVIPApi`; устанавливайте только нужные модули.
-
-Ветка `dev` является разрабатываемой. По возможности используйте совместимые версии ядра и модулей.
-
-## Требования
-
-- Выделенный сервер CS2 с установленным [Metamod:Source](https://www.sourcemm.net/).
-- Установленное и загруженное до модулей [ядро cs2-vip](https://github.com/bywinsty/cs2-vip).
+[EN](README.md) | [UA](README-UA.md)
+# [VIP] [Модули](https://github.com/bywinsty/cs2-vip-modules) для [VIP] [Ядра](https://github.com/bywinsty/cs2-vip)
+## Требования:
+- [Metamod:Source](https://www.sourcemm.net/downloads.php?branch=master&all=1).
+- [Ядро cs2-vip](https://github.com/bywinsty/cs2-vip).
 - Зависимость ядра для базы данных `sql_mm` и настроенный `addons/configs/databases.cfg`, если используются функции ядра, работающие с базой данных.
 - `VIP_Fortnite_Hits` дополнительно требует плагин/API Fortnite Hits.
-
-## Установка
-
+## Установка:
 1. Сначала установите и настройте ядро.
 2. Распакуйте архив модуля в каталог сервера `game/csgo`, сохранив структуру путей:
 
@@ -25,13 +16,41 @@
    ```
 
 3. Добавьте ключи возможностей модуля в `addons/configs/vip/groups.ini`, а ключи переводов — в `addons/translations/vip.phrases.txt`, если это требуется README модуля.
-4. Создайте или отредактируйте файлы модуля в `addons/configs/vip/`.
-5. Перезапустите сервер и проверьте загрузку ядра и выбранного модуля.
 
-Манифест пакетов этой ветки определяет файлы каждого пакета. Модули, для которых конфигурацию нужно создать вручную, указывают это в своей документации.
+Ключ возможности:
 
-## Модули
+В `groups.ini` добавьте:
+```
+"<module>" "значение"
+```
 
+Ключ перевода:
+
+В `vip.phrases.txt` добавьте:
+
+```
+	"<module>"
+	{
+		"en/ua/ru"	"<module>"
+		"en/ua/ru"	"<module>"
+		"en/ua/ru"	"<module>"
+	}
+```
+
+4. Создайте или отредактируйте конфигурационные файлы модулей в `addons/configs/vip/`.
+
+Только для модулей, README которых требует отдельный конфигурационный файл.
+
+Например:
+
+```text
+addons/configs/vip/vip_skins.ini
+addons/configs/vip/vip_test.ini
+addons/configs/vip/vip_time.ini
+```
+
+5. Перезапустите сервер и проверьте, что ядро и выбранный модуль успешно загрузились.
+## Модули:
 | Модуль | EN | UA | RU |
 | --- | --- | --- | --- |
 | VIP_AntiFlash | [README](VIP_AntiFlash/README.md) | [README-UA](VIP_AntiFlash/README-UA.md) | [README-RU](VIP_AntiFlash/README-RU.md) |

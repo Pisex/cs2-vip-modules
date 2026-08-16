@@ -1,22 +1,14 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[UA](README-UA.md) | [RU](README-RU.md)
 
-# [VIP] Modules for [cs2-vip](https://github.com/bywinsty/cs2-vip)
-
-Optional C++ modules for the [cs2-vip core](https://github.com/bywinsty/cs2-vip). Each module registers its own feature in the core through `IVIPApi`; install only the modules you need.
-
-The `dev` branch is the development version. Use a matching core/module release when possible.
-
-## Requirements
-
-- A CS2 dedicated server with [Metamod:Source](https://www.sourcemm.net/) installed.
-- The [cs2-vip core](https://github.com/bywinsty/cs2-vip) installed and loaded before the modules.
-- The core's database dependency, `sql_mm`, and a configured `addons/configs/databases.cfg` when using the core's database-backed features.
+# [VIP] [Modules](https://github.com/bywinsty/cs2-vip-modules) for [VIP] [Core](https://github.com/bywinsty/cs2-vip)
+## Requirements:
+- [Metamod:Source](https://www.sourcemm.net/downloads.php?branch=master&all=1).
+- [cs2-vip core](https://github.com/bywinsty/cs2-vip).
+- The core's database dependency, `sql_mm`, and a configured `addons/configs/databases.cfg` when database-backed core features are used.
 - `VIP_Fortnite_Hits` additionally requires the Fortnite Hits plugin/API.
-
-## Installation
-
+## Installation:
 1. Install and configure the core first.
-2. Extract a module release archive into the server's `game/csgo` directory, preserving its paths:
+2. Extract the module archive into the server's `game/csgo` directory, preserving its paths:
 
    ```text
    addons/
@@ -24,14 +16,42 @@ The `dev` branch is the development version. Use a matching core/module release 
    └── vip_modules/<module>.so
    ```
 
-3. Add the module's feature keys to `addons/configs/vip/groups.ini` and its translation keys to `addons/translations/vip.phrases.txt` when the module README requires them.
-4. Create or edit any module-specific files under `addons/configs/vip/`.
-5. Restart the server and verify that both the core and the selected module load successfully.
+3. Add the module's feature keys to `addons/configs/vip/groups.ini` and its translation keys to `addons/translations/vip.phrases.txt` when required by the module README.
 
-The package manifest on this branch declares the files included in each module package. Some modules load a configuration file that must be created manually; those cases are called out below.
+Feature key:
 
-## Modules
+In `groups.ini` add:
+```
+"<module>" "value"
+```
 
+Translation key:
+
+In `vip.phrases.txt` add:
+
+```
+	"<module>"
+	{
+		"en/ua/ru"	"<module>"
+		"en/ua/ru"	"<module>"
+		"en/ua/ru"	"<module>"
+	}
+```
+
+4. Create or edit module configuration files in `addons/configs/vip/`.
+
+Only modules whose README requires a separate configuration file need this step.
+
+For example:
+
+```text
+addons/configs/vip/vip_skins.ini
+addons/configs/vip/vip_test.ini
+addons/configs/vip/vip_time.ini
+```
+
+5. Restart the server and verify that the core and selected module load successfully.
+## Modules:
 | Module | EN | UA | RU |
 | --- | --- | --- | --- |
 | VIP_AntiFlash | [README](VIP_AntiFlash/README.md) | [README-UA](VIP_AntiFlash/README-UA.md) | [README-RU](VIP_AntiFlash/README-RU.md) |

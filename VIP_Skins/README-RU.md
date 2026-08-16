@@ -1,10 +1,14 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [UA](README-UA.md)
 
-# [VIP] Skins
+# [VIP] [Skins](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Skins)
 
-Позволяет VIP-игрокам выбирать модели игроков.
+## Позволяет VIP-игрокам выбирать модели игроков.
+
+### Конфигурация
 
 Модуль создаёт файл `addons/configs/vip/vip_skins.ini`. Создайте или отредактируйте его следующим образом:
+
+### Ключ перевода
 
 Значение возможности `Skins` определяет доступные модели. В `groups.ini` задаются ключи моделей, а в `vip.phrases.txt` — ключи их фраз.
 

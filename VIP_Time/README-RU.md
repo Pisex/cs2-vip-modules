@@ -1,10 +1,12 @@
-[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+[EN](README.md) | [UA](README-UA.md)
 
-# [VIP] Time
+# [VIP] [Time](https://github.com/bywinsty/cs2-vip-modules/tree/dev/VIP_Time)
 
-Регулярно выдаёт VIP-статус в заданный промежуток времени.
+## Регулярно выдаёт VIP-статус в заданный промежуток времени.
 
 Модуль проверяет время раз в минуту, выдаёт настроенную группу подключённым игрокам без VIP и удаляет только статус, выданный им самим.
+
+### Конфигурация
 
 Файл конфигурации: `addons/configs/vip/vip_time.ini`
 
