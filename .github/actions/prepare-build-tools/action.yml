@@ -1,0 +1,92 @@
+name: Prepare build tools
+description: Configure the pinned Python runtime and install only missing build tools.
+
+outputs:
+  python-version:
+    description: Resolved Python version.
+    value: ${{ steps.python-info.outputs.python-version }}
+  missing-apt-packages:
+    description: Space-separated list of packages missing before setup.
+    value: ${{ steps.package-audit.outputs.missing-apt-packages }}
+  apt-updated:
+    description: Whether apt-get update was required.
+    value: ${{ steps.package-audit.outputs.apt-updated }}
+  setup-seconds:
+    description: Seconds spent preparing Python and system build tools.
+    value: ${{ steps.setup-finish.outputs.setup-seconds }}
+
+runs:
+  using: composite
+  steps:
+    - name: Start setup timer
+      id: setup-start
+      shell: bash
+      run: echo "started-at=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+      with:
+        python-version: '3.12'
+        check-latest: false
+
+    - name: Install missing system packages
+      id: package-audit
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        required_packages=(
+          binutils
+          clang-18
+          file
+          git
+          libmaxminddb-dev
+          unzip
+          zip
+        )
+        missing_packages=()
+
+        for package in "${required_packages[@]}"; do
+          status="$(dpkg-query -W -f='${Status}' "$package" 2>/dev/null || true)"
+          if [[ "$status" != "install ok installed" ]]; then
+            missing_packages+=("$package")
+          fi
+        done
+
+        apt_updated=false
+        if ((${#missing_packages[@]} > 0)); then
+          sudo apt-get update -qy
+          sudo apt-get install -y "${missing_packages[@]}"
+          apt_updated=true
+        fi
+
+        printf 'missing-apt-packages=%s\n' "${missing_packages[*]}" >> "$GITHUB_OUTPUT"
+        printf 'apt-updated=%s\n' "$apt_updated" >> "$GITHUB_OUTPUT"
+
+    - name: Verify Python and build tools
+      id: python-info
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        python_version="$(python --version 2>&1 | awk '{print $2}')"
+        printf 'python-version=%s\n' "$python_version" >> "$GITHUB_OUTPUT"
+        python -m pip --version
+
+        for command in clang-18 clang++-18 git file zip unzip; do
+          if ! command -v "$command" >/dev/null 2>&1; then
+            echo "::error::Required build tool '$command' is unavailable after setup."
+            exit 1
+          fi
+        done
+
+    - name: Finish setup timer
+      id: setup-finish
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ steps.setup-start.outputs.started-at }}
+      run: |
+        finished_at="$(date +%s)"
+        started_at="${STARTED_AT:-$finished_at}"
+        printf 'setup-seconds=%s\n' "$((finished_at - started_at))" >> "$GITHUB_OUTPUT"

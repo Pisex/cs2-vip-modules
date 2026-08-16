@@ -92,6 +92,9 @@ jobs:
       pip-cache-hit: ${{ steps.restore-pip.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Prepare build tools
+        id: prepare-build-tools
+        uses: ./.github/actions/prepare-build-tools
       - name: Start dependency cache timer
         id: cache-restore-start
         run: echo "started_at=$(date +%s)" >> "$GITHUB_OUTPUT"
@@ -119,13 +122,14 @@ jobs:
         id: cache-restore-finish
         if: always()
         run: echo "finished_at=$(date +%s)" >> "$GITHUB_OUTPUT"
-      - name: Install dependencies
+      - name: Install CI Python dependencies
+        id: install-ci-dependencies
         run: |
           start_time=$(date +%s)
-          sudo apt-get update -qy
-          sudo apt-get install -y binutils clang-18 file git libmaxminddb-dev python3 python3-pip unzip zip
-          python3 -m pip install --upgrade -r "$GITHUB_WORKSPACE/.github/ci-requirements.txt"
-          echo "install_dependencies_seconds=$(( $(date +%s) - start_time ))" >> "$GITHUB_STEP_SUMMARY"
+          python -m pip install --upgrade -r "$GITHUB_WORKSPACE/.github/ci-requirements.txt"
+          pip_install_seconds=$(( $(date +%s) - start_time ))
+          echo "pip_install_seconds=$pip_install_seconds" >> "$GITHUB_OUTPUT"
+          echo "install_dependencies_seconds=$pip_install_seconds" >> "$GITHUB_STEP_SUMMARY"
       - name: Prepare pristine pinned dependencies
         id: prepare
         if: steps.restore-dependencies.outputs.cache-hit != 'true' && github.event_name != 'pull_request'
@@ -176,7 +180,7 @@ jobs:
           key: ${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ runner.arch }}-ubuntu24.04-${{ env.AMBUILD_REF }}-${{ env.MMS_REF }}-${{ env.HL2SDK_REF }}-${{ env.SCHEMAENTITY_REF }}-${{ env.MANIFEST_REF }}
       - name: Install pinned AMBuild
         if: steps.restore-dependencies.outputs.cache-hit == 'true' || steps.prepare.outcome == 'success'
-        run: python3 -m pip install "$GITHUB_WORKSPACE/ambuild"
+        run: python -m pip install "$GITHUB_WORKSPACE/ambuild"
       - name: Save pip cache
         id: save-pip
         if: github.event_name != 'pull_request' && steps.restore-pip.outputs.cache-hit != 'true'
@@ -201,6 +205,11 @@ jobs:
           PIP_RESTORE_OUTCOME: ${{ steps.restore-pip.outcome }}
           PIP_SAVE_OUTCOME: ${{ steps.save-pip.outcome }}
           EVENT_NAME: ${{ github.event_name }}
+          SYSTEM_SETUP_SECONDS: ${{ steps.prepare-build-tools.outputs.setup-seconds }}
+          APT_UPDATED: ${{ steps.prepare-build-tools.outputs.apt-updated }}
+          MISSING_APT_PACKAGES: ${{ steps.prepare-build-tools.outputs.missing-apt-packages }}
+          PIP_INSTALL_SECONDS: ${{ steps.install-ci-dependencies.outputs.pip_install_seconds }}
+          PYTHON_VERSION: ${{ steps.prepare-build-tools.outputs.python-version }}
         run: |
           cache_match_type() {
             case "${1:-}" in
@@ -229,6 +238,11 @@ jobs:
             echo "- pip restore: \`$(cache_match_type \"$PIP_CACHE_HIT\")\` (outcome: \`${PIP_RESTORE_OUTCOME:-unknown}\`)"
             echo "- pip save: \`${PIP_SAVE_OUTCOME:-skipped}\`"
             echo "- Restore window (SDK + pip): \`${restore_seconds}s\`"
+            echo "- System setup: \`${SYSTEM_SETUP_SECONDS:-unavailable}s\`"
+            echo "- apt update: \`${APT_UPDATED:-unavailable}\`"
+            echo "- Missing apt packages: \`${MISSING_APT_PACKAGES:-none}\`"
+            echo "- pip install: \`${PIP_INSTALL_SECONDS:-unavailable}s\`"
+            echo "- Python: \`${PYTHON_VERSION:-unavailable}\`"
             echo "- Cache writes from pull requests: disabled"
             echo "- Pinned refs: AMBuild=\`$AMBUILD_REF\`, MMS=\`$MMS_REF\`, HL2SDK=\`$HL2SDK_REF\`, SchemaEntity=\`$SCHEMAENTITY_REF\`, manifest=\`$MANIFEST_REF\`"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -248,8 +262,13 @@ jobs:
           PIP_CACHE_SAVE_OUTCOME: ${{ steps.save-pip.outcome }}
           CACHE_RESTORE_STARTED_AT: ${{ steps.cache-restore-start.outputs.started_at }}
           CACHE_RESTORE_FINISHED_AT: ${{ steps.cache-restore-finish.outputs.finished_at }}
+          SYSTEM_SETUP_SECONDS: ${{ steps.prepare-build-tools.outputs.setup-seconds }}
+          APT_UPDATED: ${{ steps.prepare-build-tools.outputs.apt-updated }}
+          MISSING_APT_PACKAGES: ${{ steps.prepare-build-tools.outputs.missing-apt-packages }}
+          PIP_INSTALL_SECONDS: ${{ steps.install-ci-dependencies.outputs.pip_install_seconds }}
+          PYTHON_VERSION: ${{ steps.prepare-build-tools.outputs.python-version }}
         run: |
-          python3 .github/scripts/cache_metrics.py record \
+          python .github/scripts/cache_metrics.py record \
             --job "$METRICS_JOB" \
             --output "cache-metrics/${METRICS_JOB}.json"
       - name: Upload dependency cache telemetry
@@ -279,6 +298,9 @@ jobs:
       PACKAGE_DIR: vip_modules
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Prepare build tools
+        id: prepare-build-tools
+        uses: ./.github/actions/prepare-build-tools
       - name: Start dependency cache timer
         id: cache-restore-start
         run: echo "started_at=$(date +%s)" >> "$GITHUB_OUTPUT"
@@ -306,11 +328,13 @@ jobs:
         id: cache-restore-finish
         if: always()
         run: echo "finished_at=$(date +%s)" >> "$GITHUB_OUTPUT"
-      - name: Install dependencies
+      - name: Install CI Python dependencies
+        id: install-ci-dependencies
         run: |
-          sudo apt-get update -qy
-          sudo apt-get install -y binutils clang-18 file git libmaxminddb-dev python3 python3-pip unzip zip
-          python3 -m pip install --upgrade -r "$GITHUB_WORKSPACE/.github/ci-requirements.txt"
+          start_time=$(date +%s)
+          python -m pip install --upgrade -r "$GITHUB_WORKSPACE/.github/ci-requirements.txt"
+          pip_install_seconds=$(( $(date +%s) - start_time ))
+          echo "pip_install_seconds=$pip_install_seconds" >> "$GITHUB_OUTPUT"
       - name: Restore or checkout pinned dependencies
         id: checkout-pinned-dependencies
         env:
@@ -339,7 +363,7 @@ jobs:
             echo "fallback-used=false" >> "$GITHUB_OUTPUT"
           fi
           schema_root="$GITHUB_WORKSPACE/external/SchemaEntity"
-          python3 -m pip install "$GITHUB_WORKSPACE/ambuild"
+          python -m pip install "$GITHUB_WORKSPACE/ambuild"
           if [[ "$BUILD_ROOT" == "$MODULE_DIR" ]]; then
             schema_link="$GITHUB_WORKSPACE/SchemaEntity"
           else
@@ -370,6 +394,11 @@ jobs:
           PIP_CACHE_HIT: ${{ steps.restore-pip.outputs.cache-hit }}
           PIP_RESTORE_OUTCOME: ${{ steps.restore-pip.outcome }}
           FALLBACK_USED: ${{ steps.checkout-pinned-dependencies.outputs.fallback-used }}
+          SYSTEM_SETUP_SECONDS: ${{ steps.prepare-build-tools.outputs.setup-seconds }}
+          APT_UPDATED: ${{ steps.prepare-build-tools.outputs.apt-updated }}
+          MISSING_APT_PACKAGES: ${{ steps.prepare-build-tools.outputs.missing-apt-packages }}
+          PIP_INSTALL_SECONDS: ${{ steps.install-ci-dependencies.outputs.pip_install_seconds }}
+          PYTHON_VERSION: ${{ steps.prepare-build-tools.outputs.python-version }}
         run: |
           cache_match_type() {
             case "${1:-}" in
@@ -395,6 +424,11 @@ jobs:
             echo "- pip matched key: \`${PIP_CACHE_MATCHED_KEY:-none}\`"
             echo "- pip restore: \`$(cache_match_type \"$PIP_CACHE_HIT\")\` (outcome: \`${PIP_RESTORE_OUTCOME:-unknown}\`)"
             echo "- Restore window (SDK + pip): \`${restore_seconds}s\`"
+            echo "- System setup: \`${SYSTEM_SETUP_SECONDS:-unavailable}s\`"
+            echo "- apt update: \`${APT_UPDATED:-unavailable}\`"
+            echo "- Missing apt packages: \`${MISSING_APT_PACKAGES:-none}\`"
+            echo "- pip install: \`${PIP_INSTALL_SECONDS:-unavailable}s\`"
+            echo "- Python: \`${PYTHON_VERSION:-unavailable}\`"
             echo "- Fallback clone used: \`${FALLBACK_USED:-unknown}\`"
             echo "- Pinned refs: AMBuild=\`$AMBUILD_REF\`, MMS=\`$MMS_REF\`, HL2SDK=\`$HL2SDK_REF\`, SchemaEntity=\`$SCHEMAENTITY_REF\`, manifest=\`$MANIFEST_REF\`"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -413,8 +447,13 @@ jobs:
           FALLBACK_USED: ${{ steps.checkout-pinned-dependencies.outputs.fallback-used }}
           CACHE_RESTORE_STARTED_AT: ${{ steps.cache-restore-start.outputs.started_at }}
           CACHE_RESTORE_FINISHED_AT: ${{ steps.cache-restore-finish.outputs.finished_at }}
+          SYSTEM_SETUP_SECONDS: ${{ steps.prepare-build-tools.outputs.setup-seconds }}
+          APT_UPDATED: ${{ steps.prepare-build-tools.outputs.apt-updated }}
+          MISSING_APT_PACKAGES: ${{ steps.prepare-build-tools.outputs.missing-apt-packages }}
+          PIP_INSTALL_SECONDS: ${{ steps.install-ci-dependencies.outputs.pip_install_seconds }}
+          PYTHON_VERSION: ${{ steps.prepare-build-tools.outputs.python-version }}
         run: |
-          python3 .github/scripts/cache_metrics.py record \
+          python .github/scripts/cache_metrics.py record \
             --job "$METRICS_JOB" \
             --output "cache-metrics/${METRICS_JOB}.json"
       - name: Upload module cache telemetry
@@ -434,7 +473,7 @@ jobs:
           sed -i '/#include "schemasystem.h"/a #include "gametrace.h"' "$schema_root/globaltypes.h"
           sed -i 's/NetworkStateChanged_t/NetworkStateChangedData/g' "$schema_root/schemasystem.cpp"
           sed -i 's/FL_PAWN_FAKECLIENT/FL_BOT/g; s/FL_CONTROLLER_FAKECLIENT/FL_FAKECLIENT/g' "$schema_root/CCSPlayerPawn.h" "$schema_root/CCSPlayerController.h"
-          python3 - "$schema_root/ctimer.h" <<'PY'
+          python - "$schema_root/ctimer.h" <<'PY'
           import sys
           from pathlib import Path
           timer_path = Path(sys.argv[1])
@@ -456,7 +495,7 @@ jobs:
             sed -i '1i syntax = "proto2";' "$proto_path"
           fi
           grep -q '^syntax = "proto2";$' "$proto_path"
-          python3 - "$MANIFEST_PATH/manifests/cs2.json" "$GITHUB_WORKSPACE/external/hl2sdk-cs2" <<'PY'
+          python - "$MANIFEST_PATH/manifests/cs2.json" "$GITHUB_WORKSPACE/external/hl2sdk-cs2" <<'PY'
           import json
           import sys
           from pathlib import Path
@@ -481,24 +520,24 @@ jobs:
           rm -rf "$GITHUB_WORKSPACE/$BUILD_ROOT/build"
           mkdir -p "$GITHUB_WORKSPACE/$BUILD_ROOT/build"
           cd "$GITHUB_WORKSPACE/$BUILD_ROOT/build"
-          python3 ../configure.py --sdks cs2 --targets x86_64 --enable-optimize --hl2sdk-manifests="$MANIFEST_PATH" --mms_path="$GITHUB_WORKSPACE/external/metamod-source" --hl2sdk-root="$GITHUB_WORKSPACE/external"
+          python ../configure.py --sdks cs2 --targets x86_64 --enable-optimize --hl2sdk-manifests="$MANIFEST_PATH" --mms_path="$GITHUB_WORKSPACE/external/metamod-source" --hl2sdk-root="$GITHUB_WORKSPACE/external"
           ambuild
           echo "configure_build_seconds=$(( $(date +%s) - start_time ))" >> "$GITHUB_STEP_SUMMARY"
       - name: Validate package and create archive
         run: |
           package_root="$GITHUB_WORKSPACE/$BUILD_ROOT/build/package"
-          python3 "$GITHUB_WORKSPACE/.github/scripts/validate_package.py" \
+          python "$GITHUB_WORKSPACE/.github/scripts/validate_package.py" \
             --manifest "$GITHUB_WORKSPACE/.github/package-manifest.json" \
             --package-root "$package_root" \
             --package-key "${{ matrix.module }}"
           archive="$GITHUB_WORKSPACE/${{ matrix.module }}.tar.gz"
           tar -czf "$archive" -C "$package_root" addons
-          python3 "$GITHUB_WORKSPACE/.github/scripts/validate_package.py" \
+          python "$GITHUB_WORKSPACE/.github/scripts/validate_package.py" \
             --manifest "$GITHUB_WORKSPACE/.github/package-manifest.json" \
             --package-key "${{ matrix.module }}" \
             --archive "$archive" \
             --archive-format tar.gz
-          python3 "$GITHUB_WORKSPACE/.github/scripts/check_binary_smoke.py" \
+          python "$GITHUB_WORKSPACE/.github/scripts/check_binary_smoke.py" \
             --manifest "$GITHUB_WORKSPACE/.github/package-manifest.json" \
             --package-key "${{ matrix.module }}" \
             --package-root "$package_root"
