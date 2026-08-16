@@ -1,9 +1,9 @@
 [EN](README.md) | [RU](README-RU.md)
 # [VIP] [Модулі](https://github.com/bywinsty/cs2-vip-modules) для [VIP] [Ядра](https://github.com/bywinsty/cs2-vip)
 ## Вимоги:
-- Виділений сервер CS2 з установленим [Metamod:Source](https://www.sourcemm.net/).
-- Установлене та завантажене перед модулями [ядро cs2-vip](https://github.com/bywinsty/cs2-vip).
-- Залежність ядра для бази даних `sql_mm` і налаштований `addons/configs/databases.cfg`, якщо використовуються функції ядра, що працюють із базою даних.
+- [Metamod:Source](https://www.sourcemm.net/downloads.php?branch=master&all=1).
+- [Ядро cs2-vip](https://github.com/bywinsty/cs2-vip).
+- Залежність ядра для бази даних `sql_mm` і налаштований `addons/configs/databases.cfg`.
 - `VIP_Fortnite_Hits` додатково потребує плагін/API Fortnite Hits.
 ## Установлення:
 1. Спочатку встановіть і налаштуйте ядро.
@@ -16,7 +16,37 @@
    ```
 
 3. Додайте ключі можливостей модуля до `addons/configs/vip/groups.ini`, а ключі перекладів — до `addons/translations/vip.phrases.txt`, якщо цього вимагає README модуля.
-4. Створіть або відредагуйте файли модуля в `addons/configs/vip/`.
+
+Ключ можливості:
+
+У `groups.ini` додайте:
+```
+"<module>" "значення"
+```
+
+Ключ перекладу:
+
+У `vip.phrases.txt` додайте:
+
+```
+	"<module>"
+	{
+		"en/ua/ru"	"<module>"
+		"en/ua/ru"	"<module>"
+		"en/ua/ru"	"<module>"
+	}
+   ```
+4. Створіть або відредагуйте конфігураційні файли модулів у `addons/configs/vip/`.
+
+Лише для модулів, README яких вимагає окремого конфігураційного файла.
+
+Наприклад:
+
+```text
+addons/configs/vip/vip_skins.ini
+addons/configs/vip/vip_test.ini
+addons/configs/vip/vip_time.ini
+```
 ## Модулі:
 | Модуль | EN | UA | RU |
 | --- | --- | --- | --- |
