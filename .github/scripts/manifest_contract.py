@@ -40,7 +40,7 @@ def load_contract(path):
         "release_archive_count": len(module_archives) + 1,
         "report_count": len(packages),
         "module_archives": module_archives,
-        "combined_archive": "VIP_Modules.tar.gz",
+        "combined_archive": "VIP_All_Modules.tar.gz",
     }
 
 

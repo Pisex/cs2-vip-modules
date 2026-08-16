@@ -566,7 +566,7 @@ jobs:
             tar -xzf "$archive" -C combined-root
           done
           test -d combined-root/addons
-          tar -czf release/VIP_Modules.tar.gz -C combined-root addons
+          tar -czf release/VIP_All_Modules.tar.gz -C combined-root addons
 
       - name: Validate combined archive
         env:
@@ -589,7 +589,7 @@ jobs:
                   f"Expected {os.environ['EXPECTED_PACKAGE_FILE_COUNT']} unique manifest files, found {len(expected)}"
               )
 
-          with tarfile.open("release/VIP_Modules.tar.gz", "r:gz") as archive:
+          with tarfile.open("release/VIP_All_Modules.tar.gz", "r:gz") as archive:
               actual = {member.name for member in archive.getmembers() if member.isfile()}
 
           if actual != expected:
@@ -663,7 +663,7 @@ jobs:
           release = Path("release")
           info = Path("info")
           expected_archives = sorted(path.name for path in release.glob("*.tar.gz"))
-          expected_reports = {f"{path.name.removesuffix('.tar.gz')}-BUILD_REPORT.md" for path in release.glob("VIP_*.tar.gz") if path.name != "VIP_Modules.tar.gz"}
+          expected_reports = {f"{path.name.removesuffix('.tar.gz')}-BUILD_REPORT.md" for path in release.glob("VIP_*.tar.gz") if path.name != "VIP_All_Modules.tar.gz"}
           expected = {"SHA256SUMS"} | expected_reports
           if len(expected_archives) != int(os.environ["EXPECTED_RELEASE_ARCHIVE_COUNT"]):
               raise SystemExit(
@@ -701,7 +701,7 @@ jobs:
       - name: Upload combined module archive
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          path: release/VIP_Modules.tar.gz
+          path: release/VIP_All_Modules.tar.gz
           archive: false
           if-no-files-found: error
           retention-days: 14
@@ -797,7 +797,7 @@ jobs:
 
           manifest = json.loads(Path(".github/package-manifest.json").read_text(encoding="utf-8"))
           expected = {f"{module}.tar.gz" for module in manifest["packages"]}
-          expected.add("VIP_Modules.tar.gz")
+          expected.add("VIP_All_Modules.tar.gz")
           actual = {path.name for path in Path("release-assets").glob("VIP_*.tar.gz")}
           if actual != expected:
               raise SystemExit(
@@ -807,7 +807,7 @@ jobs:
               raise SystemExit(f"Expected 36 tar.gz assets, found {len(actual)}")
           if Path("release-assets/Modules_Build_Info.zip").exists():
               raise SystemExit("Modules_Build_Info.zip must not be a release input")
-          print("Validated 35 module archives and VIP_Modules.tar.gz")
+          print("Validated 35 module archives and VIP_All_Modules.tar.gz")
           PY
 
       - name: Check current main tip
@@ -832,22 +832,25 @@ jobs:
           fi
           test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" --jq '.object.sha')" = "$GITHUB_SHA"
 
-      - name: Create or update release
+      - name: Delete existing release
+        if: steps.main-tip.outputs.stale != 'true'
+        run: |
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release delete "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --yes
+          fi
+
+      - name: Create replacement draft release
         if: steps.main-tip.outputs.stale != 'true'
         run: |
           notes=$'Automated release from main.\n\nCommit: '"$GITHUB_SHA"$'\nWorkflow run: https://github.com/'"$GITHUB_REPOSITORY"'/actions/runs/'"$GITHUB_RUN_ID"
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release edit "$RELEASE_TAG"               --repo "$GITHUB_REPOSITORY"               --title "$RELEASE_TITLE"               --notes "$notes"               --target "$GITHUB_SHA"
-          else
-            gh release create "$RELEASE_TAG"               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title "$RELEASE_TITLE"               --notes "$notes"
-          fi
-
-      - name: Remove forbidden metadata asset
-        if: steps.main-tip.outputs.stale != 'true'
-        run: |
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fxq 'Modules_Build_Info.zip'; then
-            gh release delete-asset "$RELEASE_TAG" Modules_Build_Info.zip               --repo "$GITHUB_REPOSITORY"               --yes
-          fi
+          gh release create "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$RELEASE_TITLE" \
+            --notes "$notes" \
+            --draft
 
       - name: Upload release assets
         if: steps.main-tip.outputs.stale != 'true'
@@ -874,3 +877,10 @@ jobs:
           fi
           test "${#actual[@]}" -eq 36
           echo "Release contains exactly 36 tar.gz assets."
+
+      - name: Publish replacement release
+        if: steps.main-tip.outputs.stale != 'true'
+        run: |
+          gh release edit "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft=false

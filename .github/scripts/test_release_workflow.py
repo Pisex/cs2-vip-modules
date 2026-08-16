@@ -51,15 +51,24 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         self.assertIn("git/ref/heads/main", self.release_job)
         self.assertIn("refs/tags/$RELEASE_TAG", self.release_job)
         self.assertIn("force=true", self.release_job)
+        self.assertIn('gh release delete "$RELEASE_TAG"', self.release_job)
+        self.assertNotIn("--cleanup-tag", self.release_job)
         self.assertIn("gh release create", self.release_job)
+        self.assertIn("--draft", self.release_job)
         self.assertIn("gh release edit", self.release_job)
+        self.assertIn("--draft=false", self.release_job)
+
+    def test_release_notes_follow_current_commit(self):
+        self.assertIn("Automated release from main.", self.release_job)
+        self.assertIn("$GITHUB_SHA", self.release_job)
+        self.assertIn("$GITHUB_RUN_ID", self.release_job)
 
     def test_release_contains_exact_expected_assets(self):
         self.assertIn("actions/download-artifact@", self.release_job)
         self.assertIn("pattern: VIP_*.tar.gz", self.release_job)
-        self.assertIn('expected.add("VIP_Modules.tar.gz")', self.release_job)
+        self.assertIn('expected.add("VIP_All_Modules.tar.gz")', self.release_job)
         self.assertIn("if len(actual) != 36", self.release_job)
-        self.assertIn("35 module archives", self.release_job)
+        self.assertIn("35 module archives and VIP_All_Modules.tar.gz", self.release_job)
         self.assertIn("gh release upload", self.release_job)
         self.assertIn("--clobber", self.release_job)
         self.assertIn("Verify release assets", self.release_job)
@@ -67,7 +76,6 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
 
     def test_build_info_is_never_published(self):
         self.assertIn("Modules_Build_Info.zip", self.release_job)
-        self.assertIn("gh release delete-asset", self.release_job)
         self.assertNotIn(
             'gh release upload "$RELEASE_TAG" "release-assets/Modules_Build_Info.zip"',
             self.release_job,
