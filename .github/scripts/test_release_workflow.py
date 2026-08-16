@@ -92,6 +92,14 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         )
         self.assertNotIn("path: release/Modules.tar.gz", package_job)
 
+    def test_nested_modules_archive_is_excluded_from_release_checksums(self):
+        package_job = self.workflow.split("  package-release:", 1)[1].split("  build-summary:", 1)[0]
+        self.assertIn("-name 'VIP_*.tar.gz'", package_job)
+        self.assertIn('printf "%s\\n" VIP_*.tar.gz', package_job)
+        self.assertIn('release.glob("VIP_*.tar.gz")', package_job)
+        self.assertNotIn("find release -maxdepth 1 -type f -name '*.tar.gz'", package_job)
+        self.assertNotIn('release.glob("*.tar.gz")', package_job)
+
     def test_build_info_is_never_published(self):
         self.assertIn("Modules_Build_Info.zip", self.release_job)
         self.assertNotIn(

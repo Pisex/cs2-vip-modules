@@ -727,11 +727,11 @@ jobs:
         env:
           EXPECTED_RELEASE_ARCHIVE_COUNT: ${{ needs.discover.outputs.release_archive_count }}
         run: |
-          tarball_count="$(find release -maxdepth 1 -type f -name '*.tar.gz' | wc -l)"
+          tarball_count="$(find release -maxdepth 1 -type f -name 'VIP_*.tar.gz' | wc -l)"
           test "$tarball_count" -eq "$EXPECTED_RELEASE_ARCHIVE_COUNT"
           (
             cd release
-            for archive in $(printf "%s\n" *.tar.gz | sort); do
+            for archive in $(printf "%s\n" VIP_*.tar.gz | sort); do
               sha256sum "$archive"
             done
           ) > info/SHA256SUMS
@@ -754,7 +754,7 @@ jobs:
 
           release = Path("release")
           info = Path("info")
-          expected_archives = sorted(path.name for path in release.glob("*.tar.gz"))
+          expected_archives = sorted(path.name for path in release.glob("VIP_*.tar.gz"))
           expected_reports = {f"{path.name.removesuffix('.tar.gz')}-BUILD_REPORT.md" for path in release.glob("VIP_*.tar.gz") if path.name != "VIP_All_Modules.tar.gz"}
           expected = {"SHA256SUMS"} | expected_reports
           if len(expected_archives) != int(os.environ["EXPECTED_RELEASE_ARCHIVE_COUNT"]):
