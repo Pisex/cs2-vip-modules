@@ -1,15 +1,13 @@
-**[VIP] DuckSpeed** - добавляет возможность VIP-игрокам увеличивать скорость приседания.
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
 
-В `groups.ini` добавьте следующее:
+# [VIP] DuckSpeed
+
+Allows VIP players to change their crouch speed.
+
+In `groups.ini` add:
+
 ```
-  "duckspeed" "10.0" // Скорость приседания
+"duckspeed" "10.0"
 ```
 
-В файл `vip.phrases.txt` добавьте следующее:
-```
-	"duckspeed"
-	{
-	    "en"    "Fast Crouch"
-	    "ru"    "Быстрое приседание"
-	}
-```
+The value is the crouch speed.

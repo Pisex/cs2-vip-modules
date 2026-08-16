@@ -1,17 +1,13 @@
-**[VIP] Join Sound** - добавляет возможность проигрывания звука для всех игроков при подключении VIP-игрока.
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
 
-В `groups.ini` добавьте следующее:
+# [VIP] Join Sound
+
+Plays a sound for all connected non-bot players when a VIP joins.
+
+In `groups.ini` add the path to a sound file:
 
 ```ini
-  // Путь к звуковому файлу, который будет воспроизводиться при подключении VIP-игрока
-  // Формат: "JoinSound" "путь_к_файлу"
-  "JoinSound" "sounds/music/vip_join.vsnd_c"
+"JoinSound" "sounds/music/vip_join.vsnd_c"
 ```
-В файл `vip.phrases.txt` добавьте следующее:
-```
-    "JoinSound"
-    {
-        "en"    "Join Sound"
-        "ru"    "Звук при подключении"
-    }
-```
+
+In `vip.phrases.txt` add the `JoinSound` feature label.

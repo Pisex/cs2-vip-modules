@@ -1,18 +1,13 @@
-[VIP] Speed - добавляет возможность VIP-игрокам увеличивать скорость ходьбы.
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
 
-В `groups.ini` добавьте следующее:
+# [VIP] Speed
+
+Allows VIP players to change their movement speed. The accepted range is `0.1` to `2.0`; `1.0` is the default speed.
+
+In `groups.ini` add:
+
 ```
-  // Минимальное значение: 0.1 (очень медленно)
-  // Максимальное значение: 2.0 (очень быстро)
-  // Значение по умолчанию: 1.0 (стандартная скорость)
-  "speed" "1.1"     // Текущая настройка скорости, немного выше стандартной
+"speed" "1.1"
 ```
 
-В файл `vip.phrases.txt` добавьте следующее:
-```
-	"speed"
-	{
-	    "en"    "Speed"
-	    "ru"    "Скорость"
-	}
-```
+In `vip.phrases.txt` add the `speed` feature label.

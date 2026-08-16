@@ -1,18 +1,33 @@
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+
 # [VIP] Healthshot
-My Discord server - https://discord.com/invite/g798xERK5Y
 
-Adds the ability for a VIP player to receive healthshots each round
+Gives VIP players the configured number of healthshots on spawn.
 
-In **groups.ini** add:
-```
-"healthshot" "healthshot value"
+The module reads `addons/configs/vip/vip_healthshot.ini` (included in the package):
+
+```ini
+"VIP"
+{
+    "round_min" "2"
+}
 ```
 
-In **vip.phrases.txt** add:
+`round_min` controls the first round in which healthshots are given.
+
+In `groups.ini` add:
+
 ```
-	"healthshot"
-	{
-		"en"	"Healthshots"
-		"ru"	"Шприцы"
-	}
+"healthshot" "count"
 ```
+
+In `vip.phrases.txt` add:
+
+```
+"healthshot"
+{
+    "en" "Healthshots"
+    "ru" "Шприцы"
+}
+```
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

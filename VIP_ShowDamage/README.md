@@ -1,3 +1,5 @@
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+
 # [VIP] Show Damage
 My Discord server - https://discord.com/invite/g798xERK5Y
 
@@ -16,3 +18,4 @@ In **vip.phrases.txt** add:
 		"ru"	"Показ урона"
 	}
 ```
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

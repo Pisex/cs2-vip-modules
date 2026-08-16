@@ -1,7 +1,9 @@
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+
 # [VIP] Vampirism
 My Discord server - https://discord.com/invite/g798xERK5Y
 
-Allows players to regenerate health when dealing damage to enemies 
+Allows players to regenerate health when dealing damage to enemies
 
 In **groups.ini** add:
 ```
@@ -17,3 +19,4 @@ In **vip.phrases.txt** add:
 		"ru"	"Вампиризм"
 	}
 ```
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

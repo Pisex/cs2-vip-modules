@@ -1,17 +1,13 @@
-**[VIP] No Fall Damage** — добавляет возможность отключения урона от падения для VIP-игроков.
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
 
-В `groups.ini` добавьте следующее:
+# [VIP] No Fall Damage
+
+Allows VIP players to disable fall damage.
+
+In `groups.ini` add:
+
 ```ini
-  // Включение/выключение отключения урона от падения для VIP-игроков
-  // Формат: "nofalldamage" "1" (1 для включения, 0 для выключения)
-  "nofalldamage" "1"
+"nofalldamage" "1"
 ```
 
-В файл `vip.phrases.txt` добавьте следующее:
-```
-    "nofalldamage"
-    {
-        "en"    "No Fall Damage"
-        "ru"    "Отключение урона от падения"
-    }
-```
+Use `1` to enable the feature and `0` to disable it. Add the `nofalldamage` label to `vip.phrases.txt`.

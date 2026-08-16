@@ -1,33 +1,33 @@
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
+
 # [VIP] Skins
-My Discord server - https://discord.com/invite/g798xERK5Y
 
-Allows VIP players to set their own model
+Allows VIP players to select a model from a configured skin list. The selected skin is persisted in a VIP cookie and reapplied on spawn.
 
-In **groups.ini** add:
-```
-"Skins"    "Skin ID separated by a space or comma"
+Create `addons/configs/vip/vip_skins.ini`; this file is read by the module but is not declared in the current package manifest. Example:
+
+```ini
+"Skins"
+{
+    "time" "2"
+    "cooldown" "30"
+
+    "vip_model"
+    {
+        "name" "VIP model"
+        "model_ct" "models/example_ct.vmdl"
+        "model_t" "models/example_t.vmdl"
+    }
+}
 ```
 
-In **vip.phrases.txt** add:
+`time` is the delay before applying a model after spawn; `cooldown` is the selection cooldown in seconds. The model keys available to a player come from the `Skins` feature value.
+
+In `groups.ini` add:
+
 ```
-	"Skins"
-	{
-		"en"	"Skins"
-		"ru"	"Скины"
-	}
-    "Disable_Skin"
-    {
-        "en"    "Disable skin"
-        "ru"    "Отключить скин"
-    }
-    "Select_Skin"
-    {
-        "en"    "Select skin"
-        "ru"    "Выберите скин"
-    }
-    "Cooldown"
-    {
-        "en"    "The choice will become available in %i seconds"
-        "ru"    "Выбор станет доступным через %i сек"
-    }
+"Skins" "vip_model another_model"
 ```
+
+In `vip.phrases.txt` add `Select_Skin`, `Disable_Skin` and `Cooldown`.
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)

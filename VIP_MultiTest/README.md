@@ -1,8 +1,8 @@
-# [VIP] MultiTest
-My Discord server - https://discord.com/invite/g798xERK5Y
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
 
-Allows regular players to take on VIP status
-Before installing, customize the `vip_multitest.ini` file.
+# [VIP] MultiTest
+
+Allows regular players to claim VIP status for a configured group and duration. Customize `addons/configs/vip/vip_multitest.ini` before installing.
 
 Commands:
 
@@ -22,20 +22,23 @@ addons/
 └── vip_modules/vip_multitest.so
 ```
 
-In **vip.phrases.txt** add:
+In `vip.phrases.txt` add:
+
 ```
-	"VIPMultiTest_Title"
-	{
-		"en"	"Choose a VIP group"
-		"ru"	"Выберите вип группу"
-	}
+"VIPMultiTest_Title"
+{
+    "en" "Choose a VIP group"
+    "ru" "Выберите вип группу"
+}
 ```
 
-## Обновление со старой версии
+The module also uses the `AlreadyVIP` translation key.
 
-Начиная с этой версии `VIP_MultiTest` использует отдельный namespace `vip_multitest`:
+## Upgrade from an older version
 
-| Назначение | Новый путь/ключ |
+The current `VIP_MultiTest` uses the separate `vip_multitest` namespace:
+
+| Purpose | New path/key |
 | --- | --- |
 | Binary | `addons/vip_modules/vip_multitest.so` |
 | Metamod VDF | `addons/metamod/vip_multitest.vdf` |
@@ -44,13 +47,12 @@ In **vip.phrases.txt** add:
 | Commands | `mm_vipmultitest`, `sm_vipmultitest`, `!vipmultitest`, `vipmultitest` |
 | Translation key | `VIPMultiTest_Title` |
 
-Старые файлы `vip_test.so`, `vip_test.vdf` и `vip_test.ini` не удаляйте автоматически.
-Этот namespace теперь принадлежит модулю `VIP_Test`, поэтому перед ручной очисткой остановите
-сервер и убедитесь, что файлы не используются `VIP_Test`. Read-only preflight-проверка:
+Do not delete legacy `vip_test.so`, `vip_test.vdf` or `vip_test.ini` automatically. The namespace now belongs to `VIP_Test`; stop the server and verify that those files are not used by `VIP_Test` before removing them.
+
+Read-only preflight check:
 
 ```text
 python3 .github/scripts/check_vip_multitest_upgrade.py /path/to/game
 ```
 
-Код возврата `0` означает, что legacy-файлы не найдены, `2` — требуется ручная проверка,
-`1` — неверный путь установки. Проверка ничего не удаляет и не изменяет.
+Exit code `0` means no legacy files were found, `2` requires manual review and `1` means the installation path is invalid. The check does not delete or change anything.

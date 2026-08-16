@@ -1,18 +1,13 @@
-**[VIP] Gravity** - добавляет возможность VIP-игрокам изменять уровень гравитации.
+[EN](README.md) · [UA](README-UA.md) · [RU](README-RU.md)
 
-В `groups.ini` добавьте следующее:
+# [VIP] Gravity
+
+Allows VIP players to change their gravity level. The accepted range is `0.1` to `2.0`; `1.0` is the default gravity.
+
+In `groups.ini` add:
+
 ```
-  // Минимальное значение: 0.1 (очень низкая гравитация, почти невесомость)
-  // Максимальное значение: 2.0 (очень высокая гравитация, сильная тяжесть)
-  // Значение по умолчанию: 1.0 (стандартная гравитация)
-  "gravity" "1.0"     // Текущая настройка гравитации, стандартное значение
+"gravity" "1.0"
 ```
 
-В файл `vip.phrases.txt` добавьте следующее:
-```
-	"gravity"
-	{
-		"en"    "Gravity"
-		"ru"    "Гравитация"
-	}
-```
+In `vip.phrases.txt` add the `gravity` feature label.
