@@ -601,11 +601,17 @@ jobs:
           rm -rf combined-root release info
           mkdir -p combined-root release info
           cp module-archives/VIP_*.tar.gz release/
+          (
+            cd module-archives
+            tar -czf "$GITHUB_WORKSPACE/release/Modules.tar.gz" VIP_*.tar.gz
+          )
+          test -s release/Modules.tar.gz
           for archive in module-archives/VIP_*.tar.gz; do
             tar -xzf "$archive" -C combined-root
           done
           test -d combined-root/addons
-          tar -czf release/VIP_All_Modules.tar.gz -C combined-root addons
+          cp release/Modules.tar.gz combined-root/Modules.tar.gz
+          tar -czf release/VIP_All_Modules.tar.gz -C combined-root addons Modules.tar.gz
 
       - name: Validate combined archive
         env:
@@ -614,31 +620,78 @@ jobs:
           python3 - <<'PY'
           import json
           import os
+          import posixpath
           import tarfile
           from pathlib import Path
 
           manifest = json.loads(Path(".github/package-manifest.json").read_text(encoding="utf-8"))
-          expected = {
+          expected_addons = {
               path
               for package in manifest["packages"].values()
               for path in package["files"]
           }
-          if len(expected) != int(os.environ["EXPECTED_PACKAGE_FILE_COUNT"]):
+          expected_module_archives = {
+              f"{module}.tar.gz" for module in manifest["packages"]
+          }
+          expected = expected_addons | {"Modules.tar.gz"}
+          if len(expected_addons) != int(os.environ["EXPECTED_PACKAGE_FILE_COUNT"]):
               raise SystemExit(
-                  f"Expected {os.environ['EXPECTED_PACKAGE_FILE_COUNT']} unique manifest files, found {len(expected)}"
+                  f"Expected {os.environ['EXPECTED_PACKAGE_FILE_COUNT']} unique manifest files, found {len(expected_addons)}"
               )
 
+          def normalized(name):
+              name = name.replace("\\", "/")
+              if "\x00" in name or name.startswith("/"):
+                  raise SystemExit(f"Unsafe archive path: {name!r}")
+              parts = name.rstrip("/").split("/")
+              if ".." in parts:
+                  raise SystemExit(f"Unsafe archive path: {name!r}")
+              result = posixpath.normpath(name)
+              if result in ("", ".", "..") or result.startswith("../"):
+                  raise SystemExit(f"Unsafe archive path: {name!r}")
+              return result
+
+          def validate_members(handle, expected_files, expected_directories, label):
+              files = set()
+              directories = set()
+              seen = set()
+              for member in handle.getmembers():
+                  name = normalized(member.name)
+                  if name in seen:
+                      raise SystemExit(f"Duplicate {label} member: {name}")
+                  seen.add(name)
+                  if member.isdir():
+                      directories.add(name)
+                      continue
+                  if member.issym() or member.islnk():
+                      raise SystemExit(f"Links are not allowed in {label}: {name}")
+                  if not member.isfile():
+                      raise SystemExit(f"Unsupported {label} member type: {name}")
+                  if member.size == 0:
+                      raise SystemExit(f"Empty {label} member: {name}")
+                  files.add(name)
+              if files != expected_files:
+                  raise SystemExit(
+                      f"{label} file mismatch; missing={sorted(expected_files - files)}, "
+                      f"extra={sorted(files - expected_files)}"
+                  )
+              if directories != expected_directories:
+                  raise SystemExit(
+                      f"{label} directory mismatch; missing={sorted(expected_directories - directories)}, "
+                      f"extra={sorted(directories - expected_directories)}"
+                  )
+
+          expected_directories = {
+              "/".join(path.split("/")[:index])
+              for path in expected_addons
+              for index in range(1, len(path.split("/")))
+          }
           with tarfile.open("release/VIP_All_Modules.tar.gz", "r:gz") as archive:
-              actual = {member.name for member in archive.getmembers() if member.isfile()}
-
-          if actual != expected:
-              raise SystemExit(
-                  "Combined archive mismatch; "
-                  f"missing={sorted(expected - actual)}, extra={sorted(actual)}"
-              )
-          if any(name.endswith(".tar.gz") for name in actual):
-              raise SystemExit("Combined archive contains nested module archives")
-          print(f"Validated {len(actual)} package files in combined archive")
+              validate_members(archive, expected, expected_directories, "combined archive")
+              modules_member = archive.getmember("Modules.tar.gz")
+              with tarfile.open(fileobj=archive.extractfile(modules_member), mode="r:gz") as modules_archive:
+                  validate_members(modules_archive, expected_module_archives, set(), "Modules.tar.gz")
+          print(f"Validated {len(expected_addons)} package files and {len(expected_module_archives)} module archives")
           PY
 
       - name: Create build reports

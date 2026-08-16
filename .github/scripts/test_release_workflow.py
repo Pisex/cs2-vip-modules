@@ -74,6 +74,24 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         self.assertIn("Verify release assets", self.release_job)
         self.assertIn('test "${#actual[@]}" -eq 36', self.release_job)
 
+    def test_combined_archive_contains_nested_modules_archive(self):
+        package_job = self.workflow.split("  package-release:", 1)[1].split("  build-summary:", 1)[0]
+        self.assertIn(
+            'tar -czf "$GITHUB_WORKSPACE/release/Modules.tar.gz" VIP_*.tar.gz',
+            package_job,
+        )
+        self.assertIn("cp release/Modules.tar.gz combined-root/Modules.tar.gz", package_job)
+        self.assertIn(
+            "tar -czf release/VIP_All_Modules.tar.gz -C combined-root addons Modules.tar.gz",
+            package_job,
+        )
+        self.assertIn("expected_module_archives", package_job)
+        self.assertIn(
+            'validate_members(modules_archive, expected_module_archives, set(), "Modules.tar.gz")',
+            package_job,
+        )
+        self.assertNotIn("path: release/Modules.tar.gz", package_job)
+
     def test_build_info_is_never_published(self):
         self.assertIn("Modules_Build_Info.zip", self.release_job)
         self.assertNotIn(
