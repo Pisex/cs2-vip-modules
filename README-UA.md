@@ -1,11 +1,11 @@
 [EN](README.md) | [RU](README-RU.md)
 # [VIP] [Модулі](https://github.com/bywinsty/cs2-vip-modules) для [VIP] [Ядра](https://github.com/bywinsty/cs2-vip)
-## Вимоги
+## Вимоги:
 - Виділений сервер CS2 з установленим [Metamod:Source](https://www.sourcemm.net/).
 - Установлене та завантажене перед модулями [ядро cs2-vip](https://github.com/bywinsty/cs2-vip).
 - Залежність ядра для бази даних `sql_mm` і налаштований `addons/configs/databases.cfg`, якщо використовуються функції ядра, що працюють із базою даних.
 - `VIP_Fortnite_Hits` додатково потребує плагін/API Fortnite Hits.
-## Установлення
+## Установлення:
 1. Спочатку встановіть і налаштуйте ядро.
 2. Розпакуйте архів модуля в каталог сервера `game/csgo`, зберігаючи структуру шляхів:
 
@@ -17,7 +17,7 @@
 
 3. Додайте ключі можливостей модуля до `addons/configs/vip/groups.ini`, а ключі перекладів — до `addons/translations/vip.phrases.txt`, якщо цього вимагає README модуля.
 4. Створіть або відредагуйте файли модуля в `addons/configs/vip/`.
-## Модулі
+## Модулі:
 | Модуль | EN | UA | RU |
 | --- | --- | --- | --- |
 | VIP_AntiFlash | [README](VIP_AntiFlash/README.md) | [README-UA](VIP_AntiFlash/README-UA.md) | [README-RU](VIP_AntiFlash/README-RU.md) |
